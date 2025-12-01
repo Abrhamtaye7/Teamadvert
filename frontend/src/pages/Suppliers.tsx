@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../lib/api";
 import { supplierSchema } from "@shared/schemas";
 import { SearchPanel } from "../components/SearchPanel";
+import TabHeader from "../components/TabHeader";
+import RecordingWizard from "../components/RecordingWizard";
 
 type Supplier = {
   id: number;
@@ -32,6 +34,8 @@ export default function Suppliers() {
   });
   const [selected, setSelected] = useState<Supplier | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(true);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -70,6 +74,7 @@ export default function Suppliers() {
     setStep("Basic Info");
     setForm({ companyName: "", contactPerson: "", phones: "", email: "", address: { region: "", city: "", subcity: "", woreda: "", house: "" }, categories: "" });
     load();
+    setWizardOpen(false);
   };
 
   const supplierProfile = useMemo(
@@ -100,19 +105,29 @@ export default function Suppliers() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Suppliers</h2>
-          <p className="text-sm text-slate-500">Wizard-based creation, live search, profile view.</p>
-        </div>
-        {loading && <span className="text-xs text-slate-500">Loading...</span>}
-      </div>
+      <TabHeader
+        title="Suppliers"
+        searchPlaceholder="Search SID/company/contact"
+        value={filters.q}
+        onSearch={(q) => setFilters({ ...filters, q })}
+        onFilter={() => setShowFilters((s) => !s)}
+        onOpenNew={() => setWizardOpen(true)}
+        loading={loading}
+        newLabel={"New Supplier"}
+      />
 
-      <div className="card space-y-3">
-        <SearchPanel>
-          <input className="input" placeholder="Search SID/company/contact" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
-          <button className="btn bg-slate-700 hover:bg-slate-600" type="button" onClick={() => setFilters({ q: "" })}>Clear Filters</button>
-        </SearchPanel>
+      {showFilters && (
+        <div className="card">
+          <SearchPanel>
+            <input className="input" placeholder="Search SID/company/contact" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+            <button className="btn bg-slate-700 hover:bg-slate-600" type="button" onClick={() => setFilters({ q: "" })}>
+              Clear Filters
+            </button>
+          </SearchPanel>
+        </div>
+      )}
+
+      <RecordingWizard title="New Supplier" isOpen={wizardOpen} onClose={() => setWizardOpen(false)} onSave={saveSupplier} saveLabel="Save Supplier">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-3">
             <div className="flex gap-2 text-sm font-semibold">
@@ -220,12 +235,17 @@ export default function Suppliers() {
           </div>
           <div>{supplierProfile}</div>
         </div>
-      </div>
+      </RecordingWizard>
 
       <div className="card">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="font-semibold">Suppliers</h3>
-          {loading && <span className="text-xs text-slate-500">Loading...</span>}
+          <div className="flex gap-2">
+            <button className="btn" type="button" onClick={() => setWizardOpen(true)}>
+              New Supplier
+            </button>
+            {loading && <span className="text-xs text-slate-500">Loading...</span>}
+          </div>
         </div>
         <div className="space-y-2">
           {suppliers.map((s) => (

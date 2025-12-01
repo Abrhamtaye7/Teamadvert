@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../lib/api";
 import { StatCard } from "../components/StatCard";
+import { useNavigate } from "react-router-dom";
+import RecordingWizard from "../components/RecordingWizard";
 
 type Job = {
   id: number;
@@ -21,6 +23,117 @@ export default function Dashboard() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  // navigation is not used now because buttons open modals directly
+  // keep hook available for future uses
+  useNavigate();
+  const [showCustomerWizard, setShowCustomerWizard] = useState(false);
+  const [custForm, setCustForm] = useState({ name: "", company: "", phones: "", email: "", tin: "" });
+  const [custLoading, setCustLoading] = useState(false);
+  const [showSupplierWizard, setShowSupplierWizard] = useState(false);
+  const [supplierForm, setSupplierForm] = useState({ companyName: "", contactPerson: "", phones: "", email: "" });
+  const [supplierLoading, setSupplierLoading] = useState(false);
+
+  const saveSupplierFromDashboard = async () => {
+    setSupplierLoading(true);
+    try {
+      const payload: any = {
+        supplierId: "TEMP",
+        companyName: supplierForm.companyName,
+        contactPerson: supplierForm.contactPerson || undefined,
+        phone: supplierForm.phones,
+        email: supplierForm.email || undefined,
+        address: "{}",
+      };
+      await api.post("/suppliers", payload);
+      setShowSupplierWizard(false);
+      setSupplierForm({ companyName: "", contactPerson: "", phones: "", email: "" });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSupplierLoading(false);
+    }
+  };
+
+  const [showItemWizard, setShowItemWizard] = useState(false);
+  const [itemForm, setItemForm] = useState({ name: "", basePrice: 0 });
+  const [itemLoading, setItemLoading] = useState(false);
+  const saveItemFromDashboard = async () => {
+    setItemLoading(true);
+    try {
+      const payload: any = { name: itemForm.name, basePrice: Number(itemForm.basePrice) };
+      await api.post("/items", payload);
+      setShowItemWizard(false);
+      setItemForm({ name: "", basePrice: 0 });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setItemLoading(false);
+    }
+  };
+
+  const [showProformaWizard, setShowProformaWizard] = useState(false);
+  const [proformaForm, setProformaForm] = useState({ customerName: "", notes: "" });
+  const [proformaLoading, setProformaLoading] = useState(false);
+  const saveProformaFromDashboard = async () => {
+    setProformaLoading(true);
+    try {
+      const payload: any = {
+        // Create a minimal proforma (server may accept this as draft)
+        customerNew: { name: proformaForm.customerName },
+        items: [{ name: "Quick Item", quantity: 1, sellingPrice: 0, vatPercent: 15 }],
+        notes: proformaForm.notes || undefined,
+      };
+      await api.post("/proformas", payload);
+      setShowProformaWizard(false);
+      setProformaForm({ customerName: "", notes: "" });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProformaLoading(false);
+    }
+  };
+
+  const [showJobWizard, setShowJobWizard] = useState(false);
+  const [jobForm, setJobForm] = useState({ customerName: "", description: "" });
+  const [jobLoading, setJobLoading] = useState(false);
+  const saveJobFromDashboard = async () => {
+    setJobLoading(true);
+    try {
+      const payload: any = {
+        customerNew: { name: jobForm.customerName },
+        jobItems: [{ name: "Quick Item", quantity: 1, price: 0 }],
+        description: jobForm.description || undefined,
+      };
+      await api.post("/jobs", payload);
+      setShowJobWizard(false);
+      setJobForm({ customerName: "", description: "" });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setJobLoading(false);
+    }
+  };
+
+  const saveCustomerFromDashboard = async () => {
+    setCustLoading(true);
+    try {
+      const payload: any = {
+        customerId: "TEMP",
+        name: custForm.name,
+        phone: custForm.phones,
+        company: custForm.company || undefined,
+        email: custForm.email || undefined,
+        tin: custForm.tin || undefined,
+      };
+      await api.post("/customers", payload);
+      setShowCustomerWizard(false);
+      setCustForm({ name: "", company: "", phones: "", email: "", tin: "" });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCustLoading(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -89,6 +202,101 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button className="btn" onClick={() => setShowCustomerWizard(true)}>New Customer</button>
+        <button className="btn" onClick={() => setShowProformaWizard(true)}>New Proforma</button>
+        <button className="btn" onClick={() => setShowJobWizard(true)}>New Job Order</button>
+        <button className="btn" onClick={() => setShowSupplierWizard(true)}>New Supplier</button>
+        <button className="btn" onClick={() => setShowItemWizard(true)}>New Item</button>
+      </div>
+
+      <RecordingWizard title="New Customer" isOpen={showCustomerWizard} onClose={() => setShowCustomerWizard(false)} onSave={saveCustomerFromDashboard} saveLabel={custLoading ? "Saving..." : "Save Customer"}>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-slate-600">Full name *</label>
+            <input className="input" value={custForm.name} onChange={(e) => setCustForm({ ...custForm, name: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Company</label>
+            <input className="input" value={custForm.company} onChange={(e) => setCustForm({ ...custForm, company: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Phone(s) *</label>
+            <input className="input" placeholder="Comma separated" value={custForm.phones} onChange={(e) => setCustForm({ ...custForm, phones: e.target.value })} />
+          </div>
+          <div className="grid gap-2 md:grid-cols-2">
+            <div>
+              <label className="text-sm text-slate-600">Email</label>
+              <input className="input" value={custForm.email} onChange={(e) => setCustForm({ ...custForm, email: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-sm text-slate-600">TIN</label>
+              <input className="input" value={custForm.tin} onChange={(e) => setCustForm({ ...custForm, tin: e.target.value })} />
+            </div>
+          </div>
+        </div>
+      </RecordingWizard>
+
+      <RecordingWizard title="New Supplier" isOpen={showSupplierWizard} onClose={() => setShowSupplierWizard(false)} onSave={saveSupplierFromDashboard} saveLabel={supplierLoading ? "Saving..." : "Save Supplier"}>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-slate-600">Company *</label>
+            <input className="input" value={supplierForm.companyName} onChange={(e) => setSupplierForm({ ...supplierForm, companyName: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Contact person</label>
+            <input className="input" value={supplierForm.contactPerson} onChange={(e) => setSupplierForm({ ...supplierForm, contactPerson: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Phones</label>
+            <input className="input" value={supplierForm.phones} onChange={(e) => setSupplierForm({ ...supplierForm, phones: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Email</label>
+            <input className="input" value={supplierForm.email} onChange={(e) => setSupplierForm({ ...supplierForm, email: e.target.value })} />
+          </div>
+        </div>
+      </RecordingWizard>
+
+      <RecordingWizard title="New Item" isOpen={showItemWizard} onClose={() => setShowItemWizard(false)} onSave={saveItemFromDashboard} saveLabel={itemLoading ? "Saving..." : "Save Item"}>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-slate-600">Name *</label>
+            <input className="input" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Base price</label>
+            <input className="input" type="number" value={itemForm.basePrice} onChange={(e) => setItemForm({ ...itemForm, basePrice: Number(e.target.value) })} />
+          </div>
+        </div>
+      </RecordingWizard>
+
+      <RecordingWizard title="New Proforma" isOpen={showProformaWizard} onClose={() => setShowProformaWizard(false)} onSave={saveProformaFromDashboard} saveLabel={proformaLoading ? "Saving..." : "Save Proforma"}>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-slate-600">Customer name</label>
+            <input className="input" value={proformaForm.customerName} onChange={(e) => setProformaForm({ ...proformaForm, customerName: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Notes</label>
+            <input className="input" value={proformaForm.notes} onChange={(e) => setProformaForm({ ...proformaForm, notes: e.target.value })} />
+          </div>
+        </div>
+      </RecordingWizard>
+
+      <RecordingWizard title="New Job" isOpen={showJobWizard} onClose={() => setShowJobWizard(false)} onSave={saveJobFromDashboard} saveLabel={jobLoading ? "Saving..." : "Save Job"}>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-slate-600">Customer name</label>
+            <input className="input" value={jobForm.customerName} onChange={(e) => setJobForm({ ...jobForm, customerName: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-slate-600">Description</label>
+            <input className="input" value={jobForm.description} onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })} />
+          </div>
+        </div>
+      </RecordingWizard>
 
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard title="Active Jobs" value={overview.jobActive} />

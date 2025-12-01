@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../lib/api";
 import { jobSchema, jobSearchSchema } from "@shared/schemas";
 import { SearchPanel } from "../components/SearchPanel";
+import TabHeader from "../components/TabHeader";
+import { WizardModal } from "../components/WizardModal";
 
 type Job = {
   id: number;
@@ -17,8 +19,6 @@ type Job = {
   price?: number;
   createdAt: string;
 };
-
-const steps = ["Customer", "Source", "Items", "Pricing", "Schedule", "Review"] as const;
 
 export default function Jobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -37,7 +37,7 @@ export default function Jobs() {
     proforma: "",
   });
 
-  const [step, setStep] = useState<(typeof steps)[number]>("Customer");
+  
   const [customerSearch, setCustomerSearch] = useState("");
   const [customers, setCustomers] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
@@ -57,6 +57,7 @@ export default function Jobs() {
   const [items, setItems] = useState([{ name: "", description: "", quantity: 1, unit: "pcs", price: 0 }]);
   const [meta, setMeta] = useState({ jobType: "", description: "", priority: "normal", advancePayment: 0, deadline: "", artworkPath: "", adminNotes: "" });
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
 
   const totals = useMemo(() => {
@@ -215,16 +216,54 @@ export default function Jobs() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Job Orders (TAJO)</h2>
-          <p className="text-sm text-slate-500">Create from proforma or manual, with wizard flow.</p>
+      <TabHeader
+        title="Job Orders (TAJO)"
+        searchPlaceholder="Search jobs..."
+        value={filters.q}
+        onSearch={(q) => setFilters({ ...filters, q })}
+        onFilter={() => setShowFilters((s) => !s)}
+        onOpenNew={() => setWizardOpen(true)}
+        loading={loading}
+        newLabel={"New Job Order"}
+      />
+
+      {showFilters && (
+        <div className="card">
+          <SearchPanel>
+            <input className="input" placeholder="Search number" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+            <input className="input" placeholder="Customer" value={filters.customer} onChange={(e) => setFilters({ ...filters, customer: e.target.value })} />
+            <input className="input" placeholder="Item name" value={filters.itemName} onChange={(e) => setFilters({ ...filters, itemName: e.target.value })} />
+            <select className="input" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
+              <option value="">All</option>
+              <option value="pending_approval">Pending Approval</option>
+              <option value="approved">Approved</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="finance_review">Finance Review</option>
+              <option value="closed">Closed</option>
+            </select>
+            <select className="input" value={filters.priority} onChange={(e) => setFilters({ ...filters, priority: e.target.value })}>
+              <option value="">Any priority</option>
+              <option value="high">High</option>
+              <option value="normal">Normal</option>
+              <option value="low">Low</option>
+            </select>
+            <input className="input" type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
+            <input className="input" type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
+            <input className="input" type="number" placeholder="Amount min" value={filters.amountMin} onChange={(e) => setFilters({ ...filters, amountMin: e.target.value })} />
+            <input className="input" type="number" placeholder="Amount max" value={filters.amountMax} onChange={(e) => setFilters({ ...filters, amountMax: e.target.value })} />
+            <button
+              className="btn bg-slate-700 hover:bg-slate-600"
+              type="button"
+              onClick={() =>
+                setFilters({ q: "", status: "", priority: "", customer: "", itemName: "", startDate: "", endDate: "", amountMin: "", amountMax: "", createdBy: "", proforma: "" })
+              }
+            >
+              Clear Filters
+            </button>
+          </SearchPanel>
         </div>
-        <div className="flex gap-2">
-          <button className="btn" onClick={() => setWizardOpen(true)}>New Job Order</button>
-          {loading && <span className="text-xs text-slate-500">Loading...</span>}
-        </div>
-      </div>
+      )}
 
       <WizardModal
         open={wizardOpen}
@@ -422,41 +461,16 @@ export default function Jobs() {
         onSave={submit}
       />
 
-      <div className="card space-y-3">
-        <SearchPanel>
-          <input className="input" placeholder="Search number" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
-          <input className="input" placeholder="Customer" value={filters.customer} onChange={(e) => setFilters({ ...filters, customer: e.target.value })} />
-          <input className="input" placeholder="Item name" value={filters.itemName} onChange={(e) => setFilters({ ...filters, itemName: e.target.value })} />
-          <select className="input" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
-            <option value="">All</option>
-            <option value="pending_approval">Pending Approval</option>
-            <option value="approved">Approved</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="finance_review">Finance Review</option>
-            <option value="closed">Closed</option>
-          </select>
-          <select className="input" value={filters.priority} onChange={(e) => setFilters({ ...filters, priority: e.target.value })}>
-            <option value="">Any priority</option>
-            <option value="high">High</option>
-            <option value="normal">Normal</option>
-            <option value="low">Low</option>
-          </select>
-          <input className="input" type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
-          <input className="input" type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
-          <input className="input" type="number" placeholder="Amount min" value={filters.amountMin} onChange={(e) => setFilters({ ...filters, amountMin: e.target.value })} />
-          <input className="input" type="number" placeholder="Amount max" value={filters.amountMax} onChange={(e) => setFilters({ ...filters, amountMax: e.target.value })} />
-          <button
-            className="btn bg-slate-700 hover:bg-slate-600"
-            type="button"
-            onClick={() =>
-              setFilters({ q: "", status: "", priority: "", customer: "", itemName: "", startDate: "", endDate: "", amountMin: "", amountMax: "", createdBy: "", proforma: "" })
-            }
-          >
-            Clear Filters
-          </button>
-        </SearchPanel>
-
+      <div className="card">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Job Orders</h3>
+          <div className="flex gap-2">
+            <button className="btn" type="button" onClick={() => setWizardOpen(true)}>
+              New Job Order
+            </button>
+            {loading && <span className="text-xs text-slate-500">Loading...</span>}
+          </div>
+        </div>
         <div className="space-y-2">
           {jobs.map((job) => (
             <div key={job.id} className="rounded border border-slate-200 p-3 text-sm dark:border-slate-800">

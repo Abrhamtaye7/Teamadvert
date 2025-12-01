@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../lib/api";
 import { proformaCreateSchema, proformaSearchSchema } from "@shared/schemas";
 import { SearchPanel } from "../components/SearchPanel";
+import TabHeader from "../components/TabHeader";
+import RecordingWizard from "../components/RecordingWizard";
 
 type Customer = { id: number; name: string; company?: string; customerId: string };
 type Proforma = {
@@ -109,6 +111,8 @@ export default function Proformas() {
     startDate: "",
     endDate: "",
   });
+  const [showFilters, setShowFilters] = useState(true);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.sellingPrice || 0), 0);
@@ -206,6 +210,7 @@ export default function Proformas() {
     setItems([{ name: "", description: "", quantity: 1, unit: "pcs", sellingPrice: 0, discount: 0, vatPercent: VAT_DEFAULT }]);
     setSelectedCustomer(null);
     setCustomerSearch("");
+    setWizardOpen(false);
     load();
   };
 
@@ -258,21 +263,53 @@ export default function Proformas() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Proforma Generator (TAPI)</h2>
-          <p className="text-sm text-slate-500">Auto-numbered, VAT-ready, customer-snapshotted proformas.</p>
-        </div>
-        {loading && <span className="text-xs text-slate-500">Loading...</span>}
-      </div>
+      <TabHeader
+        title="Proforma Generator (TAPI)"
+        searchPlaceholder="Search number/customer"
+        value={filters.q}
+        onSearch={(q) => setFilters({ ...filters, q })}
+        onFilter={() => setShowFilters((s) => !s)}
+        onOpenNew={() => setWizardOpen(true)}
+        loading={loading}
+        newLabel={"New Proforma"}
+      />
 
-      <div className="card space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Create Proforma</h3>
-          <div className="text-xs text-slate-500">Status: draft</div>
-        </div>
+      {showFilters && (
+          <div className="card space-y-3">
+            <SearchPanel>
+              <input className="input" placeholder="Search number/customer" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+              <input className="input" placeholder="Prepared by" value={filters.preparedBy} onChange={(e) => setFilters({ ...filters, preparedBy: e.target.value })} />
+              <input className="input" placeholder="Item name" value={filters.itemName} onChange={(e) => setFilters({ ...filters, itemName: e.target.value })} />
+              <select className="input" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
+                <option value="">All statuses</option>
+                <option value="draft">Draft</option>
+                <option value="approved">Approved</option>
+                <option value="converted">Converted</option>
+                <option value="expired">Expired</option>
+              </select>
+              <input className="input" type="number" placeholder="Amount min" value={filters.amountMin} onChange={(e) => setFilters({ ...filters, amountMin: e.target.value })} />
+              <input className="input" type="number" placeholder="Amount max" value={filters.amountMax} onChange={(e) => setFilters({ ...filters, amountMax: e.target.value })} />
+              <input className="input" type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
+              <input className="input" type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
+              <button
+                className="btn bg-slate-700 hover:bg-slate-600"
+                type="button"
+                onClick={() => setFilters({ q: "", status: "", preparedBy: "", itemName: "", amountMin: "", amountMax: "", startDate: "", endDate: "" })}
+              >
+                Clear Filters
+              </button>
+            </SearchPanel>
+          </div>
+      )}
 
-        <form onSubmit={submit} className="space-y-4">
+      <RecordingWizard
+        title="Create Proforma"
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onSave={() => (document.getElementById("proforma-form") as HTMLFormElement | null)?.requestSubmit()}
+        saveLabel="Save Proforma"
+      >
+        <form id="proforma-form" onSubmit={submit} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-semibold text-slate-700">Customer search</label>
@@ -425,7 +462,7 @@ export default function Proformas() {
                 />
                 <div className="flex items-center justify-between md:col-span-2">
                   <span className="text-sm text-slate-500">
-                    Line total:{" "}
+                    Line total: {" "}
                     {(
                       Number(item.quantity || 0) * Number(item.sellingPrice || 0) -
                       Number(item.discount || 0) +
@@ -478,39 +515,27 @@ export default function Proformas() {
           </div>
 
           {message && <p className="text-sm text-emerald-600">{message}</p>}
-          <button className="btn" type="submit">
-            Save Proforma (draft)
-          </button>
+          <div className="flex justify-end gap-2">
+            <button className="btn" type="submit">
+              Save Proforma (draft)
+            </button>
+            <button type="button" className="btn" onClick={() => setWizardOpen(false)}>
+              Close
+            </button>
+          </div>
         </form>
-      </div>
+      </RecordingWizard>
 
-      <div className="card space-y-3">
-        <SearchPanel>
-          <input className="input" placeholder="Search number/customer" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
-          <input className="input" placeholder="Prepared by" value={filters.preparedBy} onChange={(e) => setFilters({ ...filters, preparedBy: e.target.value })} />
-          <input className="input" placeholder="Item name" value={filters.itemName} onChange={(e) => setFilters({ ...filters, itemName: e.target.value })} />
-          <select className="input" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
-            <option value="">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="approved">Approved</option>
-            <option value="converted">Converted</option>
-            <option value="expired">Expired</option>
-          </select>
-          <input className="input" type="number" placeholder="Amount min" value={filters.amountMin} onChange={(e) => setFilters({ ...filters, amountMin: e.target.value })} />
-          <input className="input" type="number" placeholder="Amount max" value={filters.amountMax} onChange={(e) => setFilters({ ...filters, amountMax: e.target.value })} />
-          <input className="input" type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
-          <input className="input" type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
-          <button
-            className="btn bg-slate-700 hover:bg-slate-600"
-            type="button"
-            onClick={() =>
-              setFilters({ q: "", status: "", preparedBy: "", itemName: "", amountMin: "", amountMax: "", startDate: "", endDate: "" })
-            }
-          >
-            Clear Filters
-          </button>
-        </SearchPanel>
-
+      <div className="card">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Proformas</h3>
+          <div className="flex gap-2">
+            <button className="btn" type="button" onClick={() => setWizardOpen(true)}>
+              New Proforma
+            </button>
+            {loading && <span className="text-xs text-slate-500">Loading...</span>}
+          </div>
+        </div>
         <div className="space-y-2">
           {proformas.map((p) => (
             <div key={p.id} className="rounded border border-slate-200 p-3 text-sm dark:border-slate-800">

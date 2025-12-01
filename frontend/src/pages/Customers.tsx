@@ -3,6 +3,8 @@ import api from "../lib/api";
 import { customerSchema } from "@shared/schemas";
 import { SearchPanel } from "../components/SearchPanel";
 import { WizardModal } from "../components/WizardModal";
+import TabHeader from "../components/TabHeader";
+
 
 type Customer = {
   id: number;
@@ -35,6 +37,7 @@ export default function Customers() {
   const [error, setError] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [showFilters, setShowFilters] = useState(true);
 
   const load = async () => {
     setLoading(true);
@@ -218,16 +221,16 @@ export default function Customers() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Customer CRM</h2>
-          <p className="text-sm text-slate-500">Wizard-based creation, live search, profile views.</p>
-        </div>
-        <div className="flex gap-2">
-          <button className="btn" onClick={() => setWizardOpen(true)}>New Customer</button>
-          {loading && <span className="text-xs text-slate-500">Loading...</span>}
-        </div>
-      </div>
+      <TabHeader
+        title="Customer CRM"
+        searchPlaceholder="Search name/CID/company"
+        value={filters.q}
+        onSearch={(q) => setFilters({ ...filters, q })}
+        onFilter={() => setShowFilters((s) => !s)}
+        onOpenNew={() => setWizardOpen(true)}
+        loading={loading}
+        newLabel={"New Customer"}
+      />
 
       <WizardModal
         open={wizardOpen}
@@ -239,16 +242,30 @@ export default function Customers() {
         onSave={saveCustomer}
       />
 
+      {showFilters && (
+        <div className="card space-y-3">
+          <SearchPanel>
+            <input className="input" placeholder="Search name/CID/company" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+            <input className="input" placeholder="Phone" value={filters.phone} onChange={(e) => setFilters({ ...filters, phone: e.target.value })} />
+            <input className="input" placeholder="TIN" value={filters.tin} onChange={(e) => setFilters({ ...filters, tin: e.target.value })} />
+            <input className="input" placeholder="Email" value={filters.email} onChange={(e) => setFilters({ ...filters, email: e.target.value })} />
+            <button className="btn bg-slate-700 hover:bg-slate-600" type="button" onClick={() => setFilters({ q: "", phone: "", tin: "", email: "" })}>
+              Clear Filters
+            </button>
+          </SearchPanel>
+        </div>
+      )}
+
       <div className="card space-y-3">
-        <SearchPanel>
-          <input className="input" placeholder="Search name/CID/company" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
-          <input className="input" placeholder="Phone" value={filters.phone} onChange={(e) => setFilters({ ...filters, phone: e.target.value })} />
-          <input className="input" placeholder="TIN" value={filters.tin} onChange={(e) => setFilters({ ...filters, tin: e.target.value })} />
-          <input className="input" placeholder="Email" value={filters.email} onChange={(e) => setFilters({ ...filters, email: e.target.value })} />
-          <button className="btn bg-slate-700 hover:bg-slate-600" type="button" onClick={() => setFilters({ q: "", phone: "", tin: "", email: "" })}>
-            Clear Filters
-          </button>
-        </SearchPanel>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Customers</h3>
+          <div className="flex gap-2">
+            <button className="btn" type="button" onClick={() => setWizardOpen(true)}>
+              New Customer
+            </button>
+            {loading && <span className="text-xs text-slate-500">Loading...</span>}
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-3">{customerProfile}</div>
           <div className="overflow-x-auto">
