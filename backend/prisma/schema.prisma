@@ -1,0 +1,371 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProformaStatus {
+  draft
+  approved
+  converted
+  expired
+}
+
+enum JobStatus {
+  pending_approval
+  approved
+  in_progress
+  completed
+  finance_review
+  closed
+}
+
+enum FinanceStatus {
+  Pending
+  Partial
+  Paid
+}
+
+enum ProductionStatus {
+  Queued
+  InProgress
+  Completed
+}
+
+enum NotificationType {
+  ProformaApproved
+  JobApproved
+  JobCompleted
+  PaymentPending
+  PriceChange
+  CustomerAlert
+  PaymentVerified
+  Generic
+}
+
+enum CreditStanding {
+  Good
+  Warning
+  Suspended
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  permissions Json
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  username       String          @unique
+  pinHash        String
+  roleId         Int
+  role           Role            @relation(fields: [roleId], references: [id])
+  lastLoginAt    DateTime?
+  lastLoginIp    String?
+  lastLoginAgent String?
+  preferences    Json?
+  loginLogs      LoginLog[]
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+  customerNotes  CustomerNote[]           @relation("customerNoteUser")
+  customerPrices CustomerPriceHistory[]   @relation("customerPriceChangedBy")
+  supplierPrices SupplierPriceHistory[]   @relation("supplierPriceChangedBy")
+  supplierNotes  SupplierNote[]
+  proformas      Proforma[]              @relation("proformaPreparer")
+  jobsCreated    JobOrder[]              @relation("jobCreator")
+  jobsApproved   JobOrder[]              @relation("jobAdminApprover")
+  paymentsMade   Payment[]               @relation("paymentCreator")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Customer {
+  id                 Int                    @id @default(autoincrement())
+  customerId         String                 @unique
+  name               String
+  company            String?
+  phones             Json?
+  email              String?
+  tin                String?
+  address            Json?
+  creditLimit        Decimal?               @db.Decimal(14, 2)
+  outstandingBalance Decimal?               @db.Decimal(14, 2)
+  lastPaymentDate    DateTime?
+  standing           CreditStanding         @default(Good)
+  notes              CustomerNote[]
+  proformas          Proforma[]
+  jobs               JobOrder[]
+  payments           Payment[]
+  priceHistory       CustomerPriceHistory[]
+  creditHistory      CreditHistory[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@index([name], map: "idx_customer_name")
+  @@index([company], map: "idx_customer_company")
+}
+
+model CustomerNote {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  userId     Int?
+  note       String
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id])
+  user       User?    @relation("customerNoteUser", fields: [userId], references: [id])
+}
+
+model Supplier {
+  id             Int                    @id @default(autoincrement())
+  supplierId     String                 @unique
+  companyName    String
+  contactPerson  String?
+  phones         Json?
+  email          String?
+  address        Json?
+  priceHistory   SupplierPriceHistory[]
+  notes          SupplierNote[]
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([companyName], map: "idx_supplier_company")
+}
+
+model ItemCategory {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  items     Item[]
+  createdAt DateTime @default(now())
+}
+
+model MeasurementUnit {
+  id        Int      @id @default(autoincrement())
+  unitName  String   @unique
+  items     Item[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Item {
+  id                   Int                      @id @default(autoincrement())
+  itemId               String                   @unique
+  name                 String
+  categoryId           Int?
+  category             ItemCategory?            @relation(fields: [categoryId], references: [id])
+  measurementUnitId    Int?
+  measurementUnit      MeasurementUnit?         @relation(fields: [measurementUnitId], references: [id])
+  unit                 String?
+  purchasePrice        Decimal?                 @db.Decimal(14, 2)
+  sellingPrice         Decimal?                 @db.Decimal(14, 2)
+  basePrice            Decimal?                 @db.Decimal(14, 2)
+  notes                String?
+  supplierPriceHistory SupplierPriceHistory[]
+  customerPriceHistory CustomerPriceHistory[]
+  proformaItems        ProformaItem[]
+  jobItems             JobItem[]
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  @@index([name], map: "idx_item_name")
+}
+
+model CustomerPriceHistory {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  itemId     Int
+  oldPrice   Decimal? @db.Decimal(14, 2)
+  newPrice   Decimal  @db.Decimal(14, 2)
+  changedBy  Int?
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id])
+  item       Item     @relation(fields: [itemId], references: [id])
+  user       User?    @relation("customerPriceChangedBy", fields: [changedBy], references: [id])
+}
+
+model SupplierPriceHistory {
+  id         Int      @id @default(autoincrement())
+  supplierId Int
+  itemId     Int
+  oldPrice   Decimal? @db.Decimal(14, 2)
+  newPrice   Decimal  @db.Decimal(14, 2)
+  changedBy  Int?
+  createdAt  DateTime @default(now())
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+  item       Item     @relation(fields: [itemId], references: [id])
+  user       User?    @relation("supplierPriceChangedBy", fields: [changedBy], references: [id])
+}
+
+model SupplierNote {
+  id          Int      @id @default(autoincrement())
+  supplierId  Int
+  content     String
+  createdById Int?
+  createdAt   DateTime @default(now())
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  user        User?    @relation(fields: [createdById], references: [id])
+}
+
+model Proforma {
+  id              Int              @id @default(autoincrement())
+  number          String           @unique
+  customerId      Int
+  preparedById    Int
+  date            DateTime         @default(now())
+  validity        Int?
+  amountInWords   String?
+  notes           String?
+  terms           String?
+  signaturePath   String?
+  stampPath       String?
+  bankInfoSnapshot Json?
+  customerSnapshot Json?
+  status          ProformaStatus   @default(draft)
+  customer        Customer         @relation(fields: [customerId], references: [id])
+  preparedBy      User             @relation("proformaPreparer", fields: [preparedById], references: [id])
+  items           ProformaItem[]
+  jobOrder        JobOrder?        @relation("ProformaJob")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([number], map: "idx_proforma_number")
+}
+
+model ProformaItem {
+  id           Int      @id @default(autoincrement())
+  proformaId   Int
+  itemId       Int?
+  name         String
+  description  String?
+  quantity     Decimal  @db.Decimal(14, 2)
+  unit         String?
+  sellingPrice Decimal  @db.Decimal(14, 2)
+  discount     Decimal? @db.Decimal(14, 2)
+  vatPercent   Decimal? @db.Decimal(5, 2)
+  total        Decimal  @db.Decimal(14, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  proforma     Proforma @relation(fields: [proformaId], references: [id])
+  item         Item?    @relation(fields: [itemId], references: [id])
+}
+
+model JobOrder {
+  id                Int              @id @default(autoincrement())
+  number            String           @unique
+  customerId        Int
+  proformaId        Int?    @unique
+  customerSnapshot  Json?
+  jobType           String?
+  description       String?
+  artworkPath       String?
+  deadline          DateTime?
+  priority          String?          @default("normal")
+  price             Decimal?         @db.Decimal(14, 2)
+  advancePayment    Decimal?         @db.Decimal(14, 2)
+  adminNotes        String?
+  status            JobStatus        @default(pending_approval)
+  createdById       Int?
+  adminApprovedById Int?
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  proforma          Proforma?        @relation("ProformaJob", fields: [proformaId], references: [id])
+  jobItems          JobItem[]
+  payments          Payment[]
+  createdBy         User?            @relation("jobCreator", fields: [createdById], references: [id])
+  adminApprovedBy   User?            @relation("jobAdminApprover", fields: [adminApprovedById], references: [id])
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model JobItem {
+  id         Int      @id @default(autoincrement())
+  jobId      Int
+  itemId     Int?
+  name       String
+  description String?
+  quantity   Decimal  @db.Decimal(14, 2)
+  unit       String?
+  price      Decimal  @db.Decimal(14, 2)
+  total      Decimal  @db.Decimal(14, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  jobOrder   JobOrder @relation(fields: [jobId], references: [id])
+  item       Item?    @relation(fields: [itemId], references: [id])
+}
+
+model Payment {
+  id                 Int            @id @default(autoincrement())
+  jobId              Int
+  customerId         Int?
+  amount             Decimal        @db.Decimal(14, 2)
+  method             String?
+  transactionNumber  String?
+  referencePath      String?
+  verified           Boolean        @default(false)
+  verificationNote   String?
+  createdById        Int?
+  createdAt          DateTime       @default(now())
+  jobOrder           JobOrder       @relation(fields: [jobId], references: [id])
+  customer           Customer?      @relation(fields: [customerId], references: [id])
+  createdBy          User?          @relation("paymentCreator", fields: [createdById], references: [id])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  entity     String
+  entityId   String?
+  action     String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  message   String
+  context   Json?
+  createdAt DateTime @default(now())
+}
+
+model CreditHistory {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  change     Decimal  @db.Decimal(14, 2)
+  reason     String?
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+model Backup {
+  id        Int      @id @default(autoincrement())
+  path      String
+  status    String
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int?
+  type      NotificationType @default(Generic)
+  message   String
+  read      Boolean          @default(false)
+  data      Json?
+  createdAt DateTime         @default(now())
+  user      User?            @relation(fields: [userId], references: [id])
+}
