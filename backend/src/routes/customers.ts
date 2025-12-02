@@ -25,7 +25,7 @@ router.get("/", async (req: AuthRequest, res) => {
             ],
           }
         : {},
-      phone ? { phones: { path: ["0"], string_contains: phone } } : {},
+      phone ? { phones: { path: "$[0]", string_contains: phone } } : {},
       tin ? { tin: { contains: tin } } : {},
       email ? { email: { contains: email } } : {},
     ],

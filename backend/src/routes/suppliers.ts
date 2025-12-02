@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
             { companyName: { contains: q } },
             { supplierId: { contains: q } },
             { contactPerson: { contains: q } },
-            { phones: { path: ["0"], string_contains: q } },
+            { phones: { path: "$[0]", string_contains: q } },
           ],
         }
       : {},
