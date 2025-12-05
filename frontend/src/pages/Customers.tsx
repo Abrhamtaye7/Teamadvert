@@ -20,6 +20,48 @@ type Customer = {
   _count?: { proformas: number; jobs: number };
 };
 
+type ProformaItem = {
+  id: number;
+  name: string;
+  quantity?: number;
+  sellingPrice?: number;
+  vatPercent?: number;
+  total?: number;
+};
+
+type ProformaHistory = {
+  id: number;
+  number: string;
+  status?: string;
+  total?: number;
+  notes?: string;
+  createdAt?: string;
+  items?: ProformaItem[];
+};
+
+type JobItem = {
+  id: number;
+  name: string;
+  quantity?: number;
+  price?: number;
+  total?: number;
+};
+
+type JobHistory = {
+  id: number;
+  number: string;
+  status?: string;
+  price?: number;
+  description?: string;
+  createdAt?: string;
+  jobItems?: JobItem[];
+};
+
+type CustomerDetail = Customer & {
+  proformas?: ProformaHistory[];
+  jobs?: JobHistory[];
+};
+
 export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filters, setFilters] = useState({ q: "", phone: "", tin: "", email: "" });
@@ -35,6 +77,8 @@ export default function Customers() {
     social: "",
   });
   const [selected, setSelected] = useState<Customer | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<CustomerDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const location = useLocation();
@@ -91,6 +135,7 @@ export default function Customers() {
     }
     const res = await api.post("/customers", parsed.data);
     setSelected(res.data);
+    setSelectedDetail(null);
     setForm({
       name: "",
       company: "",
@@ -221,7 +266,7 @@ export default function Customers() {
             <p className="text-sm text-slate-500">Email: {selected.email}</p>
           </div>
           <div className="rounded border border-slate-200 p-3 text-sm dark:border-slate-800">
-            <p className="font-semibold">History</p>
+            <p className="font-semibold">History Overview</p>
             <p>Proformas: {selected._count?.proformas ?? 0}</p>
             <p>Jobs: {selected._count?.jobs ?? 0}</p>
           </div>
@@ -229,6 +274,44 @@ export default function Customers() {
       ),
     [selected]
   );
+
+  const selectCustomer = async (customer: Customer) => {
+    setSelected(customer);
+    setSelectedDetail(null);
+    setDetailLoading(true);
+    try {
+      const res = await api.get(`/customers/${customer.id}`);
+      setSelectedDetail(res.data);
+    } catch (err) {
+      console.error(err);
+      setSelectedDetail(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const renderItems = (items?: (ProformaItem | JobItem)[]) => {
+    if (!items || items.length === 0) return <p className="text-xs text-slate-400">No items</p>;
+    return (
+      <div className="mt-2 rounded border border-slate-100 bg-slate-50 p-2 text-xs dark:border-slate-800 dark:bg-slate-900/30">
+        {items.map((item) => (
+          <div key={item.id} className="flex flex-wrap justify-between border-b border-slate-100 py-1 last:border-b-0 dark:border-slate-800">
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{item.name}</span>
+            <span>
+              Qty {Number(item.quantity ?? 0)} × ETB {Number(("price" in item ? item.price : item.sellingPrice) ?? item.total ?? 0).toFixed(2)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  };
 
   return (
     <div className="space-y-4">
@@ -278,7 +361,64 @@ export default function Customers() {
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-3">{customerProfile}</div>
+          <div className="space-y-3">
+            {customerProfile}
+            {selected && (
+              <div className="rounded border border-slate-200 p-3 text-sm dark:border-slate-800">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="font-semibold">Detailed History</p>
+                  {detailLoading && <span className="text-xs text-slate-500">Loading history…</span>}
+                </div>
+                {!detailLoading && !selectedDetail && <p className="text-xs text-slate-400">Select a customer to view history.</p>}
+                {selectedDetail && (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-600">Proforma History</h4>
+                      <div className="space-y-2 pt-2">
+                        {selectedDetail.proformas && selectedDetail.proformas.length > 0 ? (
+                          selectedDetail.proformas.map((proforma) => (
+                            <div key={proforma.id} className="rounded border border-slate-100 p-2 text-xs shadow-sm dark:border-slate-800">
+                              <div className="flex flex-wrap justify-between">
+                                <span className="font-semibold text-primary">{proforma.number}</span>
+                                <span className="text-slate-500">{formatDate(proforma.createdAt)}</span>
+                              </div>
+                              <p className="capitalize text-slate-600">Status: {proforma.status || "-"}</p>
+                              <p>Total: ETB {Number(proforma.total || 0).toFixed(2)}</p>
+                              {proforma.notes && <p className="text-slate-500">Notes: {proforma.notes}</p>}
+                              {renderItems(proforma.items)}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-slate-400">No proformas found.</p>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-600">Job Order History</h4>
+                      <div className="space-y-2 pt-2">
+                        {selectedDetail.jobs && selectedDetail.jobs.length > 0 ? (
+                          selectedDetail.jobs.map((job) => (
+                            <div key={job.id} className="rounded border border-slate-100 p-2 text-xs shadow-sm dark:border-slate-800">
+                              <div className="flex flex-wrap justify-between">
+                                <span className="font-semibold text-primary">{job.number}</span>
+                                <span className="text-slate-500">{formatDate(job.createdAt)}</span>
+                              </div>
+                              <p className="capitalize text-slate-600">Status: {job.status?.replaceAll("_", " ") || "-"}</p>
+                              <p>Price: ETB {Number(job.price || 0).toFixed(2)}</p>
+                              {job.description && <p className="text-slate-500">{job.description}</p>}
+                              {renderItems(job.jobItems, "job")}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-slate-400">No job orders found.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
@@ -293,7 +433,7 @@ export default function Customers() {
               </thead>
               <tbody>
                 {customers.map((c) => (
-                  <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50 dark:border-slate-800" onClick={() => setSelected(c)}>
+                  <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50 dark:border-slate-800" onClick={() => selectCustomer(c)}>
                     <td className="px-2 py-2 font-semibold">{c.customerId}</td>
                     <td className="px-2 py-2">{c.name}</td>
                     <td className="px-2 py-2">{c.company || "-"}</td>

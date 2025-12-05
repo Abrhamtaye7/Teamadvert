@@ -36,6 +36,12 @@ export const supplierSchema = z.object({
 });
 export const supplierUpdateSchema = supplierSchema.partial();
 
+export const supplierItemPriceSchema = z.object({
+  itemId: z.number().int().optional(),
+  name: z.string().min(1),
+  price: z.number().nonnegative(),
+});
+
 export const itemSchema = z.object({
   name: z.string().min(1),
   categoryId: z.number().int().optional(),
@@ -225,3 +231,4 @@ export type JobSearchInput = z.infer<typeof jobSearchSchema>;
 export type PaymentInput = z.infer<typeof paymentSchema>;
 export type CbeVerifyInput = z.infer<typeof cbeVerifySchema>;
 export type UserCreateInput = z.infer<typeof userCreateSchema>;
+export type SupplierItemPriceInput = z.infer<typeof supplierItemPriceSchema>;
