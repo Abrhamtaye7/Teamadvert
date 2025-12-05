@@ -1,21 +1,41 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../lib/api";
 import { StatCard } from "../components/StatCard";
-import { useNavigate } from "react-router-dom";
 import RecordingWizard from "../components/RecordingWizard";
+import { openCustomerProfile, openJobPrint, openProformaPrint } from "../utils/printers";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 type Job = {
   id: number;
   number: string;
   description?: string;
   status: string;
-  productionStatus?: string;
-  financeStatus?: string;
   price?: number;
 };
 type Proforma = { id: number; number: string; status: string; amountInWords?: string };
-type Payment = { id: number; amount: number; transactionNumber?: string; verified?: boolean };
-type Customer = { id: number; name: string; outstandingBalance?: number; company?: string };
+type Payment = { id: number; amount: number; transactionNumber?: string; verified?: boolean; jobOrder?: { status?: string } };
+type Customer = { id: number; customerId?: string; name: string; outstandingBalance?: number; company?: string };
+
+type ReportSummary = {
+  jobsThisMonth: number;
+  collectedThisMonth: number;
+  outstandingThisMonth: number;
+  outstandingTotal: number;
+  pendingJobs: number;
+  financeApprovedTotal: number;
+};
+
+type ReportPoint = {
+  month: string;
+  jobs: number;
+  collected: number;
+  outstanding: number;
+};
+
+type ReportOverview = {
+  summary: ReportSummary;
+  chart: ReportPoint[];
+};
 
 export default function Dashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -23,9 +43,7 @@ export default function Dashboard() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  // navigation is not used now because buttons open modals directly
-  // keep hook available for future uses
-  useNavigate();
+  const [reportOverview, setReportOverview] = useState<ReportOverview | null>(null);
   const [showCustomerWizard, setShowCustomerWizard] = useState(false);
   const [custForm, setCustForm] = useState({ name: "", company: "", phones: "", email: "", tin: "" });
   const [custLoading, setCustLoading] = useState(false);
@@ -96,6 +114,12 @@ export default function Dashboard() {
   const [showJobWizard, setShowJobWizard] = useState(false);
   const [jobForm, setJobForm] = useState({ customerName: "", description: "" });
   const [jobLoading, setJobLoading] = useState(false);
+  type FinancialKey = "payments" | "financeApproved" | "outstanding";
+  const [financialVisibility, setFinancialVisibility] = useState<Record<FinancialKey, boolean>>({
+    payments: true,
+    financeApproved: true,
+    outstanding: true,
+  });
   const saveJobFromDashboard = async () => {
     setJobLoading(true);
     try {
@@ -139,16 +163,18 @@ export default function Dashboard() {
     const load = async () => {
       setLoading(true);
       try {
-        const [jobsRes, proformasRes, paymentsRes, customersRes] = await Promise.all([
+        const [jobsRes, proformasRes, paymentsRes, customersRes, reportsRes] = await Promise.all([
           api.get("/jobs", { params: { pageSize: 20 } }),
           api.get("/proformas", { params: { pageSize: 20 } }),
           api.get("/payments"),
           api.get("/customers", { params: { pageSize: 20 } }),
+          api.get("/reports/overview"),
         ]);
         setJobs(jobsRes.data.data || jobsRes.data);
         setProformas(proformasRes.data.data || proformasRes.data);
         setPayments(paymentsRes.data);
         setCustomers(customersRes.data.data || customersRes.data);
+        setReportOverview(reportsRes.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -158,15 +184,33 @@ export default function Dashboard() {
     load();
   }, []);
 
+  const openJob = async (job: Job) => openJobPrint(job.id);
+  const openProforma = async (proforma: Proforma) => openProformaPrint(proforma.id);
+  const openCustomer = async (customer: Customer) => openCustomerProfile(customer.id);
+
+  const normalizeStatus = (value?: string) => (value ? value.toLowerCase() : "");
   const overview = useMemo(() => {
     const paymentTotal = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const financeApprovedTotal = payments.reduce((sum, p) => {
+      const status = normalizeStatus(p.jobOrder?.status);
+      const isApproved = status === "closed" || status === "approved";
+      return isApproved ? sum + Number(p.amount || 0) : sum;
+    }, 0);
     const paidVerified = payments.filter((p) => p.verified).length;
-    const jobActive = jobs.filter((j) => j.productionStatus === "InProgress" || j.status === "Approved").length;
-    const jobCompleted = jobs.filter((j) => j.productionStatus === "Completed" || j.status === "Completed").length;
+    const jobActive = jobs.filter((j) => {
+      const status = normalizeStatus(j.status);
+      return status === "in_progress" || status === "approved";
+    }).length;
+    const jobCompleted = jobs.filter((j) => {
+      const status = normalizeStatus(j.status);
+      return status === "completed" || status === "closed";
+    }).length;
     const approvalsPending =
-      proformas.filter((p) => p.status === "Draft").length + jobs.filter((j) => j.status === "AwaitingApproval").length;
+      proformas.filter((p) => normalizeStatus(p.status) === "draft").length +
+      jobs.filter((j) => normalizeStatus(j.status) === "pending_approval").length;
     return {
       paymentTotal,
+      financeApprovedTotal,
       paidVerified,
       jobActive,
       jobCompleted,
@@ -174,18 +218,78 @@ export default function Dashboard() {
     };
   }, [jobs, proformas, payments]);
 
-  const pipeline = {
-    awaiting: jobs.filter((j) => j.status === "AwaitingApproval"),
-    production: jobs.filter((j) => j.productionStatus === "InProgress"),
-    finance: jobs.filter((j) => j.financeStatus === "Pending" || j.financeStatus === "Partial"),
-    completed: jobs.filter((j) => j.status === "Completed" || j.productionStatus === "Completed"),
-  };
+  const pipeline = useMemo(() => {
+    const awaiting = jobs.filter((j) => normalizeStatus(j.status) === "pending_approval");
+    const production = jobs.filter((j) => normalizeStatus(j.status) === "in_progress");
+    const finance = jobs.filter((j) => normalizeStatus(j.status) === "finance_review");
+    const completed = jobs.filter((j) => {
+      const status = normalizeStatus(j.status);
+      return status === "completed" || status === "closed";
+    });
+    return { awaiting, production, finance, completed };
+  }, [jobs]);
 
   const recentProformas = proformas.slice(0, 6);
   const topCustomers = customers
     .map((c) => ({ ...c, outstanding: Number(c.outstandingBalance || 0) }))
     .sort((a, b) => b.outstanding - a.outstanding)
     .slice(0, 5);
+
+  const formatAmount = (amount: number) => `ETB ${Number(amount || 0).toFixed(2)}`;
+  const maskAmount = (key: FinancialKey, amount: number) => (financialVisibility[key] ? formatAmount(amount) : "****");
+  const toggleFinancial = (key: FinancialKey) => {
+    setFinancialVisibility((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+  const VisibilityIcon = ({ hidden }: { hidden: boolean }) => (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="text-slate-400"
+    >
+      <path
+        d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={hidden ? "opacity-50" : ""}
+      />
+      <path
+        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={hidden ? "opacity-50" : ""}
+      />
+      {hidden && (
+        <path d="m4 4 16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      )}
+    </svg>
+  );
+  const renderVisibilityIcon = (key: FinancialKey) => (
+    <span
+      role="button"
+      tabIndex={0}
+      aria-label={financialVisibility[key] ? "Hide amount" : "Show amount"}
+      className="cursor-pointer rounded-full p-1 hover:bg-slate-100 focus:outline-none focus:ring"
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleFinancial(key);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleFinancial(key);
+        }
+      }}
+    >
+      <VisibilityIcon hidden={!financialVisibility[key]} />
+    </span>
+  );
 
   return (
     <div className="space-y-6">
@@ -301,9 +405,47 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard title="Active Jobs" value={overview.jobActive} />
         <StatCard title="Completed Jobs" value={overview.jobCompleted} />
-        <StatCard title="Payments Collected" value={`ETB ${overview.paymentTotal.toFixed(2)}`} />
+        <StatCard title="Payments Collected" value={maskAmount("payments", overview.paymentTotal)} icon={renderVisibilityIcon("payments")} />
+        <StatCard title="Finance Approved" value={maskAmount("financeApproved", overview.financeApprovedTotal)} icon={renderVisibilityIcon("financeApproved")} />
         <StatCard title="Verified Receipts" value={overview.paidVerified} />
+        {reportOverview && (
+          <>
+            <StatCard
+              title="Outstanding Balance"
+              value={maskAmount("outstanding", reportOverview.summary?.outstandingTotal ?? 0)}
+              icon={renderVisibilityIcon("outstanding")}
+            />
+            <StatCard title="Pending Jobs" value={reportOverview.summary?.pendingJobs ?? 0} />
+          </>
+        )}
       </div>
+
+      {reportOverview && (
+        <div className="card">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Report Summary</h3>
+            <span className="text-xs text-slate-500">Monthly trends</span>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={reportOverview.chart}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip
+                formatter={(value: number, name: string) => {
+                  const isCurrency = name === "collected" || name === "outstanding";
+                  const label = name.charAt(0).toUpperCase() + name.slice(1);
+                  return [isCurrency ? `ETB ${Number(value || 0).toFixed(2)}` : value, label];
+                }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="jobs" stroke="#8884d8" name="Jobs" />
+              <Line type="monotone" dataKey="collected" stroke="#ffc658" name="Collected" />
+              <Line type="monotone" dataKey="outstanding" stroke="#f97316" name="Outstanding" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
@@ -322,10 +464,15 @@ export default function Dashboard() {
                 <div className={`mb-2 text-sm font-semibold ${col.color}`}>{col.label}</div>
                 <div className="space-y-2">
                   {col.list.slice(0, 4).map((job) => (
-                    <div key={job.id} className="rounded-md bg-slate-50 px-2 py-1 text-xs dark:bg-slate-800">
-                      <div className="font-semibold text-slate-800 dark:text-white">{job.number}</div>
+                    <button
+                      key={job.id}
+                      type="button"
+                      onClick={() => openJob(job)}
+                      className="w-full rounded-md bg-slate-50 px-2 py-1 text-left text-xs transition hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700"
+                    >
+                      <div className="font-semibold text-primary">{job.number}</div>
                       <div className="text-slate-500">{job.description || "—"}</div>
-                    </div>
+                    </button>
                   ))}
                   {col.list.length === 0 && <p className="text-xs text-slate-400">No items</p>}
                 </div>
@@ -364,13 +511,18 @@ export default function Dashboard() {
           </div>
           <div className="space-y-2">
             {recentProformas.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-800">
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => openProforma(p)}
+                className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-left text-sm transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/40"
+              >
                 <div>
-                  <p className="font-semibold">{p.number}</p>
+                  <p className="font-semibold text-primary">{p.number}</p>
                   <p className="text-xs text-slate-500">Status: {p.status}</p>
                 </div>
                 <span className="text-xs text-slate-500">{p.amountInWords || ""}</span>
-              </div>
+              </button>
             ))}
             {recentProformas.length === 0 && <p className="text-xs text-slate-400">No proformas yet</p>}
           </div>
@@ -393,7 +545,11 @@ export default function Dashboard() {
               <tbody>
                 {topCustomers.map((c) => (
                   <tr key={c.id} className="border-t border-slate-100 dark:border-slate-800">
-                    <td className="px-2 py-2 font-medium">{c.name}</td>
+                    <td className="px-2 py-2 font-medium">
+                      <button type="button" className="text-left text-primary hover:underline" onClick={() => openCustomer(c)}>
+                        {c.customerId ? `${c.customerId} · ${c.name}` : c.name}
+                      </button>
+                    </td>
                     <td className="px-2 py-2">{c.company || "—"}</td>
                     <td className="px-2 py-2 text-right">ETB {Number(c.outstandingBalance || 0).toFixed(2)}</td>
                   </tr>

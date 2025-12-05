@@ -82,8 +82,32 @@ model User {
   jobsCreated    JobOrder[]              @relation("jobCreator")
   jobsApproved   JobOrder[]              @relation("jobAdminApprover")
   paymentsMade   Payment[]               @relation("paymentCreator")
+  accessGrants   UserAccessRole[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+}
+
+model AccessRole {
+  id          Int              @id @default(autoincrement())
+  code        String           @unique
+  label       String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       UserAccessRole[]
+}
+
+model UserAccessRole {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  accessRoleId Int
+  granted      Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id])
+  accessRole   AccessRole @relation(fields: [accessRoleId], references: [id])
+
+  @@unique([userId, accessRoleId])
 }
 
 model LoginLog {

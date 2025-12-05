@@ -203,7 +203,13 @@ router.post("/:id/finance", requireRole(["Finance", "Admin"]), async (req: AuthR
   const { status } = req.body as { status: string };
   const allowed: ("finance_review" | "closed" | "approved")[] = ["finance_review", "closed", "approved"];
   if (!allowed.includes(status as any)) return res.status(400).json({ message: "Invalid finance status" });
-  const job = await prisma.jobOrder.update({ where: { id }, data: { status: status as any } });
+
+  const job = await prisma.jobOrder.update({ where: { id }, data: { status: status as any }, include: { payments: true } });
+
+  if (status === "closed") {
+    await prisma.payment.updateMany({ where: { jobId: id }, data: { verified: true } });
+  }
+
   await recordAudit({ userId: req.user?.id, entity: "job", entityId: String(id), action: "finance", after: { status } });
   res.json(job);
 });

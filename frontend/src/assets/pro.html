@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Proforma Invoice</title>
+  <style>
+    :root {
+      --accent: #1a69e0;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #222;
+      background: #fff;
+      min-width: 210mm;
+      min-height: 297mm;
+    }
+    .background-wrap {
+      width: 210mm;
+      height: 297mm;
+      margin: auto;
+      position: relative;
+      background: url('./background.jpg') no-repeat center center;
+      background-size: cover;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    /* Use an absolutely positioned <img> so browsers will print the background image even when CSS backgrounds are disabled in print settings */
+    .print-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      pointer-events: none;
+      display: none; /* hide on screen to avoid duplicate visuals if CSS background is shown */
+    }
+    @media print {
+      .print-background {
+        display: block;
+      }
+    }
+    .invoice-box {
+      width: 100%;
+      height: 100%;
+      padding: 40px;
+      position: relative;
+      margin-top: 30mm;
+      background: none;
+    }
+    .stamp {
+      display: block;
+      margin: 40px auto 0 auto;
+      width: 200px;
+      opacity: 0.65;
+      pointer-events: none;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.14));
+    }
+    h1 {
+      text-align: center;
+      color: var(--accent);
+      letter-spacing: 3px;
+      margin: 16px 0 24px 0;
+    }
+    h2, h3 {
+      margin: 0 0 6px 0;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+    .flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .section {
+      margin-bottom: 28px;
+    }
+    .customer {
+      font-size: 15px;
+      line-height: 1.2;
+    }
+    .meta {
+      text-align: right;
+      font-size: 14px;
+    }
+    .meta div {
+      margin-bottom: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 28px;
+      font-size: 15px;
+    }
+    th, td {
+      padding: 8px 6px;
+      border: 1px solid #d7e6ff;
+      text-align: left;
+    }
+    th {
+      background: #eaf1fc;
+      color: #194176;
+      font-weight: 600;
+    }
+    td.right, th.right {
+      text-align: right;
+    }
+    .summary {
+      float: right;
+      font-size: 15px;
+      width: 320px;
+      margin-top: 24px;
+      border: none;
+    }
+    .summary td, .summary th {
+      border: none;
+      padding: 6px 0;
+    }
+    .summary tr.total th, .summary tr.total td {
+      border-top: 2px solid var(--accent);
+      font-weight: bold;
+      color: var(--accent);
+    }
+    notes {
+      margin-top: 40px;
+      font-size: 13px;
+      color: #494949;
+      line-height: 2;
+    }
+    .sign-section {
+      display: flex;
+      justify-content: space-between;
+      margin: 40px 0 0 0;
+      gap: 40px;
+    }
+    .sign-col {
+      flex: 1;
+      text-align: left;
+    }
+    .sign-label {
+      font-size: 13px;
+      color: #1a69e0;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .sign-line {
+      border-bottom: 1.4px solid #666;
+      height: 28px;
+      margin-bottom: 8px;
+      width: 90%;
+      display: inline-block;
+    }
+    .sign-name {
+      font-size: 12px;
+      color: #555;
+    }
+    #amountInWords {
+      display: inline-block;
+      margin-left: 6px;
+      font-weight: 700;
+      color: #0f265c;
+    }
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      body {
+        background: #fff !important;
+        margin: 0 !important;
+        min-width: 210mm !important;
+        <div class="background-wrap container">
+            <img class="print-background" src="./background.jpg" alt="" aria-hidden="true" />
+        <div class="invoice-box">
+      .background-wrap {
+        width: 210mm !important;
+        height: 297mm !important;
+        background: url('background.jpg') no-repeat center center !important;
+        background-size: cover !important;
+      }
+      .invoice-box {
+        border: none;
+        box-shadow: none;
+        width: 100% !important;
+        height: 100% !important;
+        background: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-wrap container">
+    <div class="invoice-box">
+      <div class="meta">
+        <div><strong>Invoice #:</strong> <span id="proformaId">PF-2025-0015</span></div>
+        <div><strong>Date:</strong> <span id="date">2025-12-03</span></div>
+      </div>
+      <div class="flex section">
+        <div class="customer">
+          <strong>To:</strong><br>
+          <span id="customerName">Customer Name</span><br>
+          <span id="customerAddress">Addis Ababa, Ethiopia</span>
+        </div>
+      </div>
+      <h1>PROFORMA INVOICE</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Description</th>
+            <th class="right">Unit</th>
+            <th class="right">Qty</th>
+            <th class="right">Unit Price</th>
+            <th class="right">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody">
+          <tr>
+            <td colspan="6" style="text-align:center; color:#7f8c8d; font-style:italic;">Items will populate automatically</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="summary">
+        <tr>
+          <th>Subtotal:</th>
+          <td class="right" id="total">0.00</td>
+        </tr>
+        <tr>
+          <th>Tax (15% VAT):</th>
+          <td class="right" id="vat">0.00</td>
+        </tr>
+        <tr class="total">
+          <th>Total:</th>
+          <td class="right" id="grandTotal">0.00</td>
+        </tr>
+      </table>
+      <br>
+<div style="float:right; margin-top:10px;">
+    <div class="notes" style="margin:0;">
+        <div style="background:#19417696;color:#fff;padding:8px;border-radius:6px;display:inline-block;font-weight:700;">
+            <strong>Amount in words:</strong> <span id="amountInWords">Zero birr only</span>
+        </div><br><br>
+        <strong>Validation date:</strong> <span id="validationDate">-</span><br>
+        <strong>Bank Details:</strong> <span id="bankDetails">Name: Team Advert PLC | Bank: CBE | 1000357045219</span><br>
+        <strong>Payment Terms:</strong> 50% Advance on the job starting date and 50% on the job completion date.<br>
+        <span style="color: #7f8c8d;">
+            This is a proforma invoice. No payment is due until a final invoice is issued.<br>
+        </span><br><br><br>
+        <strong>prepared by:  Tsedale T.</strong> <br><br>
+        <strong>approved by:  Abrham T.</strong> 
+        
+    </div>
+</div>
+<div style="clear:both;"></div>
+      <img class="stamp" id="stampImage" src="./stamp.png" alt="Stamp" />
+      </div>
+    </div>
+  </div>
+</body>
+</html>

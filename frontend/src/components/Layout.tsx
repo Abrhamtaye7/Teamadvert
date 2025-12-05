@@ -5,12 +5,14 @@ import logo from "../assets/teamlogo.png";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
+  { to: "/reports", label: "Reports" },
   { to: "/proformas", label: "Proformas" },
   { to: "/jobs", label: "Job Orders" },
   { to: "/customers", label: "Customers" },
   { to: "/suppliers", label: "Suppliers" },
   { to: "/items", label: "Items" },
   { to: "/payments", label: "Finance" },
+  { to: "/settings", label: "Settings" },
   { to: "/notifications", label: "Notifications" },
 ];
 

@@ -9,7 +9,11 @@ const router = Router();
 router.use(requireAuth);
 
 router.get("/", async (_req, res) => {
-  const payments = await prisma.payment.findMany({ orderBy: { createdAt: "desc" }, take: 100, include: { jobOrder: true } });
+  const payments = await prisma.payment.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 100,
+    include: { jobOrder: true },
+  });
   res.json(payments);
 });
 
@@ -23,7 +27,8 @@ router.post("/", requireRole(["Finance", "Admin"]), async (req: AuthRequest, res
   if (job) {
     const totalPaid = job.payments.reduce((sum, p) => sum + Number(p.amount), 0) + payload.amount;
     if (job.price && totalPaid >= Number(job.price)) {
-      await prisma.jobOrder.update({ where: { id: job.id }, data: { status: "finance_review" } });
+      const nextStatus = payload.method === "Cash" ? "closed" : "finance_review";
+      await prisma.jobOrder.update({ where: { id: job.id }, data: { status: nextStatus as any } });
     }
   }
 

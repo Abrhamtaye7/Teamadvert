@@ -10,6 +10,8 @@ import Proformas from "./pages/Proformas";
 import Jobs from "./pages/Jobs";
 import Payments from "./pages/Payments";
 import Notifications from "./pages/Notifications";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import { hydrateAuth } from "./store/auth";
 import { useUiStore } from "./store/ui";
@@ -35,6 +37,8 @@ export default function App() {
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
     </Routes>

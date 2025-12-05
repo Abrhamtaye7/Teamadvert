@@ -172,10 +172,18 @@ export const jobSearchSchema = z.object({
 export const paymentSchema = z.object({
   jobId: z.number().int(),
   amount: z.number().nonnegative(),
-  method: z.string().optional(),
+  method: z.enum(["Cash", "Bank"]),
   transactionNumber: z.string().optional(),
   referencePath: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    if (data.method === "Bank") {
+      return !!data.transactionNumber && data.transactionNumber.trim().length > 0;
+    }
+    return true;
+  },
+  { message: "Transaction number required for bank transfers", path: ["transactionNumber"] }
+);
 
 export const cbeVerifySchema = z.object({
   transactionNumber: z.string().min(5),
@@ -187,6 +195,26 @@ export const notificationSchema = z.object({
   type: z.string().default("Generic"),
 });
 
+export const userCreateSchema = z.object({
+  username: z.string().min(3),
+  pin: z.string().length(4),
+  roleId: z.number().int(),
+  accessRoleIds: z.array(z.number().int()).optional(),
+});
+
+export const userRoleUpdateSchema = z.object({
+  roleId: z.number().int(),
+});
+
+export const userAccessUpdateSchema = z.object({
+  accessRoleIds: z.array(z.number().int()).optional(),
+});
+
+export const changePinSchema = z.object({
+  currentPin: z.string().length(4),
+  newPin: z.string().length(4),
+});
+
 export type LoginInput = z.infer<typeof userLoginSchema>;
 export type CustomerInput = z.infer<typeof customerSchema>;
 export type SupplierInput = z.infer<typeof supplierSchema>;
@@ -196,3 +224,4 @@ export type JobInput = z.infer<typeof jobSchema>;
 export type JobSearchInput = z.infer<typeof jobSearchSchema>;
 export type PaymentInput = z.infer<typeof paymentSchema>;
 export type CbeVerifyInput = z.infer<typeof cbeVerifySchema>;
+export type UserCreateInput = z.infer<typeof userCreateSchema>;

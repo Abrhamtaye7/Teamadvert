@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { customerSchema } from "@shared/schemas";
 import { SearchPanel } from "../components/SearchPanel";
@@ -36,6 +37,16 @@ export default function Customers() {
   const [selected, setSelected] = useState<Customer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const state = (location.state as { focusCustomer?: string } | null) ?? null;
+    if (state?.focusCustomer) {
+      setFilters((prev) => ({ ...prev, q: state.focusCustomer! }));
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate]);
   const [stepIndex, setStepIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(true);
 

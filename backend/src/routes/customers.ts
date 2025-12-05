@@ -5,6 +5,44 @@ import { customerSchema, customerUpdateSchema } from "../../../shared/schemas";
 import { recordAudit } from "../services/audit";
 import { nextCustomerCode } from "../utils/identifiers";
 
+function toPhoneArray(value?: string | string[]) {
+  const raw = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
+  const normalized = raw.map((entry) => entry.trim()).filter(Boolean);
+  return normalized.length ? normalized : undefined;
+}
+
+function buildAddress(input: Record<string, string | undefined>) {
+  const address = {
+    region: input.addressRegion,
+    city: input.addressCity,
+    subcity: input.addressSubcity,
+    woreda: input.addressWoreda,
+    house: input.addressHouse,
+  };
+  const entries = Object.entries(address).filter(([, value]) => {
+    if (typeof value !== "string") return false;
+    return value.trim().length > 0;
+  });
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
+function normalizeCustomerPayload(payload: Record<string, any>) {
+  const {
+    customerId: _ignoreCustomerId,
+    phone,
+    phones,
+    addressRegion,
+    addressCity,
+    addressSubcity,
+    addressWoreda,
+    addressHouse,
+    ...rest
+  } = payload;
+  const normalizedPhones = toPhoneArray(phones ?? phone);
+  const address = buildAddress({ addressRegion, addressCity, addressSubcity, addressWoreda, addressHouse });
+  return { data: rest, phones: normalizedPhones, address };
+}
+
 const router = Router();
 router.use(requireAuth);
 
@@ -63,10 +101,17 @@ router.get("/:id", async (req, res) => {
 router.post("/", requireRole(["Admin", "Sales"]), async (req: AuthRequest, res) => {
   const parsed = customerSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ issues: parsed.error.issues });
-  const data = parsed.data;
+  const normalized = normalizeCustomerPayload(parsed.data as Record<string, any>);
   const code = await nextCustomerCode();
-  const created = await prisma.customer.create({ data: { ...data, customerId: code } });
-  await recordAudit({ userId: req.user?.id, entity: "customer", entityId: String(created.id), action: "create", after: data });
+  const created = await prisma.customer.create({
+    data: {
+      ...(normalized.data as any),
+      customerId: code,
+      phones: normalized.phones as any,
+      address: normalized.address as any,
+    },
+  });
+  await recordAudit({ userId: req.user?.id, entity: "customer", entityId: String(created.id), action: "create", after: created });
   res.status(201).json(created);
 });
 
@@ -76,7 +121,15 @@ router.put("/:id", requireRole(["Admin", "Sales"]), async (req: AuthRequest, res
   const id = Number(req.params.id);
   const existing = await prisma.customer.findUnique({ where: { id } });
   if (!existing) return res.status(404).json({ message: "Customer not found" });
-  const updated = await prisma.customer.update({ where: { id }, data: parsed.data });
+  const normalized = normalizeCustomerPayload(parsed.data as Record<string, any>);
+  const updated = await prisma.customer.update({
+    where: { id },
+    data: {
+      ...(normalized.data as any),
+      phones: normalized.phones as any,
+      address: normalized.address as any,
+    },
+  });
   await recordAudit({ userId: req.user?.id, entity: "customer", entityId: String(id), action: "update", before: existing, after: updated });
   res.json(updated);
 });

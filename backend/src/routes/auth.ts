@@ -7,7 +7,7 @@ import { recordAudit } from "../services/audit";
 import { ensureSeedData } from "../services/bootstrap";
 import { AuthRequest, requireAuth } from "../middleware/auth";
 import { log } from "../utils/logger";
-import { userLoginSchema } from "../../../shared/schemas";
+import { changePinSchema, userLoginSchema } from "../../../shared/schemas";
 
 const router = Router();
 
@@ -73,6 +73,21 @@ router.get("/me", requireAuth, async (req: AuthRequest, res) => {
     permissions: user?.role.permissions,
     lastLoginAt: user?.lastLoginAt,
   });
+});
+
+router.post("/change-pin", requireAuth, async (req: AuthRequest, res) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const parsed = changePinSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ issues: parsed.error.issues });
+  const { currentPin, newPin } = parsed.data;
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  if (!user) return res.status(404).json({ message: "User not found" });
+  const match = await bcrypt.compare(currentPin, user.pinHash);
+  if (!match) return res.status(400).json({ message: "Current PIN incorrect" });
+  const pinHash = await bcrypt.hash(newPin, 10);
+  await prisma.user.update({ where: { id: user.id }, data: { pinHash } });
+  await recordAudit({ userId: user.id, entity: "user", entityId: String(user.id), action: "change-pin" });
+  res.json({ message: "PIN updated" });
 });
 
 export default router;

@@ -13,6 +13,23 @@ router.use(requireAuth);
 
 const DEFAULT_VAT = 15;
 
+function normalizeQueryParams(query: Record<string, any>) {
+  const normalized: Record<string, any> = {};
+  for (const [key, value] of Object.entries(query)) {
+    if (Array.isArray(value)) {
+      normalized[key] = value.length ? value : undefined;
+      continue;
+    }
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      normalized[key] = trimmed === "" ? undefined : trimmed;
+      continue;
+    }
+    normalized[key] = value;
+  }
+  return normalized;
+}
+
 function generateCustomerId() {
   const now = dayjs();
   return `CUST-${now.format("YYMMDD")}-${Math.floor(Math.random() * 900 + 100)}`;
@@ -30,7 +47,8 @@ function buildLineTotals(item: { quantity: number; sellingPrice: number; discoun
 }
 
 router.get("/", async (req, res) => {
-  const parsedFilters = proformaSearchSchema.safeParse(req.query);
+  const filters = normalizeQueryParams(req.query as Record<string, any>);
+  const parsedFilters = proformaSearchSchema.safeParse(filters);
   if (!parsedFilters.success) return res.status(400).json({ issues: parsedFilters.error.issues });
   const { q, status, preparedBy, startDate, endDate, itemName, amountMin, amountMax, page = "1", pageSize = "20" } =
     parsedFilters.data;

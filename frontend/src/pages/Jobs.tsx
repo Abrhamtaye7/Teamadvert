@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { jobSchema, jobSearchSchema } from "@shared/schemas";
 import { SearchPanel } from "../components/SearchPanel";
 import TabHeader from "../components/TabHeader";
 import { WizardModal } from "../components/WizardModal";
+import { openJobPrint } from "../utils/printers";
 
 type Job = {
   id: number;
@@ -59,6 +61,17 @@ export default function Jobs() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const state = (location.state as { focusJob?: string } | null) ?? null;
+    if (state?.focusJob) {
+      setFilters((prev) => ({ ...prev, q: state.focusJob! }));
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate]);
 
   const totals = useMemo(() => {
     const total = items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.price || 0), 0);
@@ -185,33 +198,7 @@ export default function Jobs() {
   };
 
   const printJob = async (id: number) => {
-    const res = await api.get(`/jobs/${id}/print`);
-    const data = res.data;
-    const html = `
-    <html><head><title>${data.job.number}</title><style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border: 1px solid #e5e7eb; padding: 8px; font-size: 12px; }
-    </style></head>
-    <body>
-      <h2>${data.job.number}</h2>
-      <div>Customer: ${data.job.customerSnapshot?.name || data.job.customer?.name || ""}</div>
-      <div>Deadline: ${data.job.deadline ? new Date(data.job.deadline).toLocaleDateString() : "-"}</div>
-      <div>Priority: ${data.job.priority}</div>
-      <table><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Price</th><th>Total</th></tr></thead>
-      <tbody>${data.job.jobItems
-        .map((it: any) => `<tr><td>${it.name}</td><td>${it.quantity}</td><td>${it.unit || ""}</td><td>${it.price}</td><td>${it.total}</td></tr>`)
-        .join("")}</tbody></table>
-      <p>Total: ${data.total}</p>
-      <p>Notes: ${data.job.adminNotes || ""}</p>
-      <script>window.onload=()=>window.print()</script>
-    </body></html>
-    `;
-    const w = window.open("", "_blank");
-    if (w) {
-      w.document.write(html);
-      w.document.close();
-    }
+    await openJobPrint(id);
   };
 
   return (
