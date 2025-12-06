@@ -16,7 +16,7 @@ This repository implements the TEAM ADVERT PLC business workflow platform descri
    npx prisma generate
    npm run dev        # start API on http://localhost:4000
    ```
-   Seed user created automatically if DB is empty: `admin / 0000`.
+   Seed user created automatically if DB is empty: `admin / 3805`.
 3. **Frontend**
    ```bash
    cd frontend
@@ -39,6 +39,17 @@ Configure `backend/.env` (DATABASE_URL, JWT_SECRET, BACKUP_DIR etc). Prisma sche
 ## Scripts
 - `backend/npm run test` – type-check backend
 - `frontend/npm run build` – type-check + bundle UI
+- `./scripts/package-release.sh` – builds backend + frontend and creates `teamadvert-release.tar.gz`
+
+## Production Bundle
+To produce a deployable bundle with both API and static UI assets:
+
+```bash
+chmod +x scripts/package-release.sh
+./scripts/package-release.sh
+```
+
+The script installs dependencies (if needed), runs `npm run build` in both `backend/` and `frontend/`, stages the compiled output under `.release/teamadvert-release`, and generates `teamadvert-release.tar.gz` in the repo root. Upload/extract that archive on your host, install backend production dependencies (`cd backend && npm install --omit=dev`), set up `.env`, run Prisma migrations, and serve the frontend `frontend/dist` via any static file server or CDN.
 
 ## Notes
 - File uploads are path-only per PRD; no binary storage.

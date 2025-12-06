@@ -62,6 +62,10 @@ type CustomerDetail = Customer & {
   jobs?: JobHistory[];
 };
 
+const isProformaItem = (item: ProformaItem | JobItem): item is ProformaItem => {
+  return "sellingPrice" in item;
+};
+
 export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filters, setFilters] = useState({ q: "", phone: "", tin: "", email: "" });
@@ -298,7 +302,7 @@ export default function Customers() {
           <div key={item.id} className="flex flex-wrap justify-between border-b border-slate-100 py-1 last:border-b-0 dark:border-slate-800">
             <span className="font-semibold text-slate-700 dark:text-slate-200">{item.name}</span>
             <span>
-              Qty {Number(item.quantity ?? 0)} × ETB {Number(("price" in item ? item.price : item.sellingPrice) ?? item.total ?? 0).toFixed(2)}
+              Qty {Number(item.quantity ?? 0)} × ETB {Number((isProformaItem(item) ? item.sellingPrice : item.price) ?? item.total ?? 0).toFixed(2)}
             </span>
           </div>
         ))}
@@ -406,7 +410,7 @@ export default function Customers() {
                               <p className="capitalize text-slate-600">Status: {job.status?.replaceAll("_", " ") || "-"}</p>
                               <p>Price: ETB {Number(job.price || 0).toFixed(2)}</p>
                               {job.description && <p className="text-slate-500">{job.description}</p>}
-                              {renderItems(job.jobItems, "job")}
+                              {renderItems(job.jobItems)}
                             </div>
                           ))
                         ) : (
