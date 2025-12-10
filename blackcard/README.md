@@ -44,8 +44,9 @@ Generate a TOTP using the secret logged at startup (`otplib` compatible). Use th
 - `/payout/account/setup` → one-time account lock; blocks withdrawals until present
 - `/payout/account/change-request` → submit change; super-admin must approve via `/admin/payout/change/approve`
 - `/payout/history` → merchants and developers can view their withdrawal history and statuses
+- `/admin/payouts` → super-admin view of the payout queue with optional status filter
 - `/admin/config` & `/admin/config/update` → mutable commission/split settings
-- `/admin/audit` & `/payouts` → view immutable audit + payout queues
+- `/admin/audit` → filterable audit log by actor and event type
 - `/admin/payout/change-requests` → review all change requests
 - `/admin/payout/review` → super-admin approves or rejects pending payout requests, returning funds on rejection
 

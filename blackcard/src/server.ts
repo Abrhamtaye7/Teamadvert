@@ -398,13 +398,25 @@ app.post("/admin/payout/change/approve", requireAuth, requireRole(["super_admin"
   return res.json(request);
 });
 
-app.get("/admin/audit", requireAuth, requireRole(["super_admin"]), (req, res) => {
-  const { actorId, eventType } = req.query as { actorId?: string; eventType?: string };
-  const events = audits.filter((event) => (!actorId || event.actorId === actorId) && (!eventType || event.eventType === eventType));
-  return res.json(events);
+app.get("/admin/payouts", requireAuth, requireRole(["super_admin"]), (req, res) => {
+  const schema = z.object({ status: z.enum(["pending", "approved", "rejected"]).optional() });
+  const parsed = schema.safeParse(req.query);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid query" });
+  const filtered = parsed.data.status ? payouts.filter((p) => p.status === parsed.data.status) : payouts;
+  return res.json(filtered);
 });
 
-app.get("/payouts", requireAuth, requireRole(["super_admin"]), (_req, res) => res.json(payouts));
+app.get("/admin/audit", requireAuth, requireRole(["super_admin"]), (req, res) => {
+  const schema = z.object({ actorId: z.string().optional(), eventType: z.string().optional() });
+  const parsed = schema.safeParse(req.query);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid query" });
+  const filtered = audits.filter((event) => {
+    if (parsed.data.actorId && event.actorId !== parsed.data.actorId) return false;
+    if (parsed.data.eventType && event.eventType !== parsed.data.eventType) return false;
+    return true;
+  });
+  return res.json(filtered);
+});
 
 app.listen(config.port, () => {
   console.log(`Black Card API running on ${config.port}`);
