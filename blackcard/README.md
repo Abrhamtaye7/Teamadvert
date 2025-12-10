@@ -36,9 +36,10 @@ Generate a TOTP using the secret logged at startup (`otplib` compatible). Use th
 - `/cards/link` → bind NFC UID to customer (auth required)
 - `/cards/balance` → quick balance lookup by UID
 - `/topup/initiate` → credits customer + central wallet
-- `/payments/process` → ACID-like atomic updates with idempotency, 99/1 split, 40/30/30 dev breakdown
+- `/payments/process` → ACID-like atomic updates with idempotency, config-driven commission rate, and runtime 40/30/30 dev breakdown
+- `/payments/refund` → super-admin endpoint to atomically reverse a transaction using ledger deltas
 - `/merchant/wallet` & `/merchant/withdraw` → enforce 80% cap + TOTP
-- `/developer/wallet` & `/developer/withdraw` → same withdrawal logic
+- `/developer/wallet` & `/developer/withdraw` → same withdrawal logic with daily cap based on start-of-day balance
 - `/admin/config` & `/admin/config/update` → mutable commission/split settings
 - `/admin/audit` & `/payouts` → view immutable audit + payout queues
 

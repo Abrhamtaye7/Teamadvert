@@ -18,6 +18,15 @@ export const transactions: Transaction[] = [];
 export const ledgers: TransactionLedgerEntry[] = [];
 export const audits: AuditEvent[] = [];
 export const payouts: PayoutRequest[] = [];
+export const refundedTransactions = new Set<string>();
+
+type WithdrawalWindow = {
+  dateKey: string;
+  startingBalance: number;
+  withdrawn: number;
+};
+
+const withdrawalWindows = new Map<string, WithdrawalWindow>();
 
 const getWallet = (ownerId: string, type: Wallet["type"], initialBalance = 0): Wallet => {
   let wallet = wallets.find((w) => w.ownerId === ownerId && w.type === type);
@@ -49,6 +58,8 @@ export const findUserById = (id: string) => users.find((u) => u.id === id);
 export const findCard = (uid: string) => cards.find((c) => c.uid === uid);
 export const findWallet = (ownerId: string, type: Wallet["type"]) => wallets.find((w) => w.ownerId === ownerId && w.type === type);
 export const getCentralWallet = () => central;
+export const getWithdrawalWindow = (walletId: string) => withdrawalWindows.get(walletId);
+export const updateWithdrawalWindow = (walletId: string, window: WithdrawalWindow) => withdrawalWindows.set(walletId, window);
 
 export const recordAudit = (event: Omit<AuditEvent, "id" | "createdAt">) => {
   const audit: AuditEvent = { ...event, id: uuid(), createdAt: new Date() };

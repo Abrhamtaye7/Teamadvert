@@ -16,10 +16,14 @@ import {
   findWallet,
   getCentralWallet,
   insertTransaction,
+  getWithdrawalWindow,
+  ledgers,
   payouts,
   recordAudit,
   recordPayout,
+  refundedTransactions,
   transactions,
+  updateWithdrawalWindow,
   users,
   wallets,
 } from "./data";
@@ -31,6 +35,26 @@ app.use(cors());
 app.use(express.json());
 
 const idempotencyRegister = new Map<string, string>();
+let runtimeConfig = {
+  commissionRate: 1,
+  developerSplit: config.developerSplit,
+  withdrawalCap: config.withdrawalCap,
+};
+
+const dailyCapExceeded = (wallet: { id: string; balance: number }, amount: number) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const window = getWithdrawalWindow(wallet.id);
+  if (!window || window.dateKey !== today) {
+    updateWithdrawalWindow(wallet.id, { dateKey: today, startingBalance: wallet.balance, withdrawn: 0 });
+  }
+  const active = getWithdrawalWindow(wallet.id)!;
+  const cap = active.startingBalance * runtimeConfig.withdrawalCap;
+  const remaining = cap - active.withdrawn;
+  if (amount > remaining) return { exceeded: true, cap, remaining };
+  active.withdrawn += amount;
+  updateWithdrawalWindow(wallet.id, active);
+  return { exceeded: false, cap, remaining: remaining - amount };
+};
 
 const signToken = (user: User) => jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, { expiresIn: "1h" });
 
@@ -149,9 +173,9 @@ app.post("/payments/process", (req, res) => {
     .map((dev) => walletOrCreate(dev.id, "developer"));
 
   // compute splits
-  const businessAmount = Number((amount * 0.99).toFixed(2));
-  const devTotal = Number((amount * 0.01).toFixed(2));
-  const split = config.developerSplit;
+  const businessAmount = Number((amount * (1 - runtimeConfig.commissionRate / 100)).toFixed(2));
+  const devTotal = Number((amount * (runtimeConfig.commissionRate / 100)).toFixed(2));
+  const split = runtimeConfig.developerSplit;
   const devAmounts = [split.devA, split.devB, split.devC].map((p) => Number(((devTotal * p) / 100).toFixed(2)));
 
   // apply ledger
@@ -173,6 +197,25 @@ app.post("/payments/process", (req, res) => {
   return res.json({ transactionId: txnId, status: "success" });
 });
 
+app.post("/payments/refund", requireAuth, requireRole(["super_admin"]), (req, res) => {
+  const schema = z.object({ transactionId: z.string(), reason: z.string().optional() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid payload" });
+  const txn = transactions.find((t) => t.id === parsed.data.transactionId);
+  if (!txn) return res.status(404).json({ message: "Transaction not found" });
+  if (refundedTransactions.has(txn.id)) return res.status(409).json({ message: "Already refunded" });
+
+  const entries = ledgers.filter((l) => l.transactionId === txn.id);
+  entries.forEach((entry) => {
+    const wallet = wallets.find((w) => w.id === entry.walletId);
+    if (wallet) wallet.balance -= entry.delta;
+    addLedger({ transactionId: `${txn.id}-refund`, walletId: entry.walletId, delta: -entry.delta });
+  });
+  refundedTransactions.add(txn.id);
+  recordAudit({ actorId: (req as any).user.id, eventType: "payment_refund", payload: parsed.data });
+  return res.json({ message: "Refunded", refundTransactionId: `${txn.id}-refund` });
+});
+
 app.get("/merchant/wallet", requireAuth, requireRole(["merchant_admin"]), (req, res) => {
   const user = (req as any).user as User;
   const wallet = walletOrCreate(user.id, "business_net");
@@ -188,8 +231,8 @@ app.post("/merchant/withdraw", requireAuth, requireRole(["merchant_admin"]), (re
     return res.status(400).json({ message: "Invalid TOTP" });
   }
   const wallet = walletOrCreate(user.id, "business_net");
-  const cap = wallet.balance * config.withdrawalCap;
-  if (parsed.data.amount > cap) return res.status(400).json({ message: "Cap exceeded", cap });
+  const capCheck = dailyCapExceeded(wallet, parsed.data.amount);
+  if (capCheck.exceeded) return res.status(400).json({ message: "Cap exceeded", cap: capCheck.cap, remaining: capCheck.remaining });
   wallet.balance -= parsed.data.amount;
   recordPayout({ id: uuid(), userId: user.id, walletId: wallet.id, amount: parsed.data.amount, status: "pending" });
   recordAudit({ actorId: user.id, eventType: "merchant_withdraw", payload: parsed.data });
@@ -209,19 +252,13 @@ app.post("/developer/withdraw", requireAuth, requireRole(["developer"]), (req, r
   const user = (req as any).user as User;
   if (!user.totpSecret || !authenticator.check(parsed.data.totp, user.totpSecret)) return res.status(400).json({ message: "Invalid TOTP" });
   const wallet = walletOrCreate(user.id, "developer");
-  const cap = wallet.balance * config.withdrawalCap;
-  if (parsed.data.amount > cap) return res.status(400).json({ message: "Cap exceeded", cap });
+  const capCheck = dailyCapExceeded(wallet, parsed.data.amount);
+  if (capCheck.exceeded) return res.status(400).json({ message: "Cap exceeded", cap: capCheck.cap, remaining: capCheck.remaining });
   wallet.balance -= parsed.data.amount;
   recordPayout({ id: uuid(), userId: user.id, walletId: wallet.id, amount: parsed.data.amount, status: "pending" });
   recordAudit({ actorId: user.id, eventType: "developer_withdraw", payload: parsed.data });
   return res.json({ message: "Withdrawal initiated", remaining: wallet.balance });
 });
-
-let runtimeConfig = {
-  commissionRate: 1,
-  developerSplit: config.developerSplit,
-  withdrawalCap: config.withdrawalCap,
-};
 
 app.get("/admin/config", requireAuth, requireRole(["super_admin"]), (_req, res) => {
   return res.json(runtimeConfig);
