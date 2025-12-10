@@ -347,6 +347,38 @@ app.get("/admin/payout/change-requests", requireAuth, requireRole(["super_admin"
   return res.json(payoutAccountChangeRequests);
 });
 
+app.get("/payout/history", requireAuth, requireRole(["merchant_admin", "developer"]), (req, res) => {
+  const user = (req as any).user as User;
+  const history = payouts.filter((p) => p.userId === user.id);
+  return res.json(history);
+});
+
+app.post("/admin/payout/review", requireAuth, requireRole(["super_admin"]), (req, res) => {
+  const schema = z.object({ payoutId: z.string(), approve: z.boolean(), reference: z.string().optional() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid payload" });
+
+  const payout = payouts.find((p) => p.id === parsed.data.payoutId);
+  if (!payout) return res.status(404).json({ message: "Payout not found" });
+  if (payout.status !== "pending") return res.status(409).json({ message: "Payout already decided", status: payout.status });
+
+  payout.status = parsed.data.approve ? "approved" : "rejected";
+  payout.reference = parsed.data.reference;
+
+  if (!parsed.data.approve) {
+    const wallet = wallets.find((w) => w.id === payout.walletId);
+    if (wallet) wallet.balance += payout.amount;
+  }
+
+  recordAudit({
+    actorId: (req as any).user.id,
+    eventType: "payout_review",
+    payload: { payoutId: payout.id, approved: parsed.data.approve, reference: parsed.data.reference },
+  });
+
+  return res.json(payout);
+});
+
 app.post("/admin/payout/change/approve", requireAuth, requireRole(["super_admin"]), (req, res) => {
   const schema = z.object({ requestId: z.string(), approve: z.boolean() });
   const parsed = schema.safeParse(req.body);

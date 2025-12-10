@@ -43,8 +43,10 @@ Generate a TOTP using the secret logged at startup (`otplib` compatible). Use th
 - `/payout/account` → view current locked payout account (merchant admins + developers)
 - `/payout/account/setup` → one-time account lock; blocks withdrawals until present
 - `/payout/account/change-request` → submit change; super-admin must approve via `/admin/payout/change/approve`
+- `/payout/history` → merchants and developers can view their withdrawal history and statuses
 - `/admin/config` & `/admin/config/update` → mutable commission/split settings
 - `/admin/audit` & `/payouts` → view immutable audit + payout queues
 - `/admin/payout/change-requests` → review all change requests
+- `/admin/payout/review` → super-admin approves or rejects pending payout requests, returning funds on rejection
 
 This implementation is intentionally simple (in-memory, no persistence, no encryption) to let us validate flows fast. Swap the storage layer for Prisma/PostgreSQL plus encryption per PRD when ready.
