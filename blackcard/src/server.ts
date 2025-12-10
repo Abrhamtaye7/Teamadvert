@@ -11,6 +11,7 @@ import {
   audits,
   cards,
   findCard,
+  findPayoutAccount,
   findUserById,
   findUserByUsername,
   findWallet,
@@ -19,10 +20,14 @@ import {
   getWithdrawalWindow,
   ledgers,
   payouts,
+  payoutAccountChangeRequests,
+  payoutAccounts,
   recordAudit,
   recordPayout,
   refundedTransactions,
   transactions,
+  insertChangeRequest,
+  upsertPayoutAccount,
   updateWithdrawalWindow,
   users,
   wallets,
@@ -54,6 +59,13 @@ const dailyCapExceeded = (wallet: { id: string; balance: number }, amount: numbe
   active.withdrawn += amount;
   updateWithdrawalWindow(wallet.id, active);
   return { exceeded: false, cap, remaining: remaining - amount };
+};
+
+const requireLockedPayoutAccount = (userId: string) => {
+  const account = findPayoutAccount(userId);
+  if (!account) return { ok: false, message: "No payout account on file" } as const;
+  if (!account.locked) return { ok: false, message: "Payout account pending lock" } as const;
+  return { ok: true, account } as const;
 };
 
 const signToken = (user: User) => jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, { expiresIn: "1h" });
@@ -216,6 +228,39 @@ app.post("/payments/refund", requireAuth, requireRole(["super_admin"]), (req, re
   return res.json({ message: "Refunded", refundTransactionId: `${txn.id}-refund` });
 });
 
+app.get("/payout/account", requireAuth, requireRole(["merchant_admin", "developer"]), (req, res) => {
+  const user = (req as any).user as User;
+  const account = findPayoutAccount(user.id);
+  if (!account) return res.status(404).json({ message: "No payout account" });
+  return res.json(account);
+});
+
+app.post("/payout/account/setup", requireAuth, requireRole(["merchant_admin", "developer"]), (req, res) => {
+  const schema = z.object({ provider: z.string(), accountNumber: z.string() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid payload" });
+  const user = (req as any).user as User;
+  const existing = findPayoutAccount(user.id);
+  if (existing) return res.status(400).json({ message: "Payout account already locked" });
+  const account = upsertPayoutAccount({ userId: user.id, provider: parsed.data.provider, accountNumber: parsed.data.accountNumber, locked: true });
+  recordAudit({ actorId: user.id, eventType: "payout_account_setup", payload: { provider: account.provider } });
+  return res.status(201).json(account);
+});
+
+app.post("/payout/account/change-request", requireAuth, requireRole(["merchant_admin", "developer"]), (req, res) => {
+  const schema = z.object({ provider: z.string(), accountNumber: z.string() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid payload" });
+  const user = (req as any).user as User;
+  const account = findPayoutAccount(user.id);
+  if (!account) return res.status(400).json({ message: "No payout account to change" });
+  const pending = payoutAccountChangeRequests.find((r) => r.userId === user.id && r.status === "pending");
+  if (pending) return res.status(409).json({ message: "Existing change request pending", requestId: pending.id });
+  const request = insertChangeRequest({ id: uuid(), userId: user.id, newAccountNumber: parsed.data.accountNumber, newProvider: parsed.data.provider, status: "pending" });
+  recordAudit({ actorId: user.id, eventType: "payout_account_change_requested", payload: { requestId: request.id } });
+  return res.status(202).json({ requestId: request.id, status: request.status });
+});
+
 app.get("/merchant/wallet", requireAuth, requireRole(["merchant_admin"]), (req, res) => {
   const user = (req as any).user as User;
   const wallet = walletOrCreate(user.id, "business_net");
@@ -230,11 +275,20 @@ app.post("/merchant/withdraw", requireAuth, requireRole(["merchant_admin"]), (re
   if (!user.totpSecret || !authenticator.check(parsed.data.totp, user.totpSecret)) {
     return res.status(400).json({ message: "Invalid TOTP" });
   }
+  const payoutAccountCheck = requireLockedPayoutAccount(user.id);
+  if (!payoutAccountCheck.ok) return res.status(400).json({ message: payoutAccountCheck.message });
   const wallet = walletOrCreate(user.id, "business_net");
   const capCheck = dailyCapExceeded(wallet, parsed.data.amount);
   if (capCheck.exceeded) return res.status(400).json({ message: "Cap exceeded", cap: capCheck.cap, remaining: capCheck.remaining });
   wallet.balance -= parsed.data.amount;
-  recordPayout({ id: uuid(), userId: user.id, walletId: wallet.id, amount: parsed.data.amount, status: "pending" });
+  recordPayout({
+    id: uuid(),
+    userId: user.id,
+    walletId: wallet.id,
+    amount: parsed.data.amount,
+    status: "pending",
+    provider: payoutAccountCheck.account.provider,
+  });
   recordAudit({ actorId: user.id, eventType: "merchant_withdraw", payload: parsed.data });
   return res.json({ message: "Withdrawal initiated", remaining: wallet.balance });
 });
@@ -251,11 +305,20 @@ app.post("/developer/withdraw", requireAuth, requireRole(["developer"]), (req, r
   if (!parsed.success) return res.status(400).json({ message: "Invalid payload" });
   const user = (req as any).user as User;
   if (!user.totpSecret || !authenticator.check(parsed.data.totp, user.totpSecret)) return res.status(400).json({ message: "Invalid TOTP" });
+  const payoutAccountCheck = requireLockedPayoutAccount(user.id);
+  if (!payoutAccountCheck.ok) return res.status(400).json({ message: payoutAccountCheck.message });
   const wallet = walletOrCreate(user.id, "developer");
   const capCheck = dailyCapExceeded(wallet, parsed.data.amount);
   if (capCheck.exceeded) return res.status(400).json({ message: "Cap exceeded", cap: capCheck.cap, remaining: capCheck.remaining });
   wallet.balance -= parsed.data.amount;
-  recordPayout({ id: uuid(), userId: user.id, walletId: wallet.id, amount: parsed.data.amount, status: "pending" });
+  recordPayout({
+    id: uuid(),
+    userId: user.id,
+    walletId: wallet.id,
+    amount: parsed.data.amount,
+    status: "pending",
+    provider: payoutAccountCheck.account.provider,
+  });
   recordAudit({ actorId: user.id, eventType: "developer_withdraw", payload: parsed.data });
   return res.json({ message: "Withdrawal initiated", remaining: wallet.balance });
 });
@@ -278,6 +341,29 @@ app.post("/admin/config/update", requireAuth, requireRole(["super_admin"]), (req
   runtimeConfig = { ...runtimeConfig, ...parsed.data, developerSplit: parsed.data.developerSplit ?? runtimeConfig.developerSplit };
   recordAudit({ actorId: (req as any).user.id, eventType: "admin_config_update", payload: parsed.data });
   return res.json(runtimeConfig);
+});
+
+app.get("/admin/payout/change-requests", requireAuth, requireRole(["super_admin"]), (_req, res) => {
+  return res.json(payoutAccountChangeRequests);
+});
+
+app.post("/admin/payout/change/approve", requireAuth, requireRole(["super_admin"]), (req, res) => {
+  const schema = z.object({ requestId: z.string(), approve: z.boolean() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid payload" });
+  const request = payoutAccountChangeRequests.find((r) => r.id === parsed.data.requestId);
+  if (!request) return res.status(404).json({ message: "Request not found" });
+  if (request.status !== "pending") return res.status(409).json({ message: "Request already decided" });
+  request.status = parsed.data.approve ? "approved" : "rejected";
+  if (parsed.data.approve) {
+    upsertPayoutAccount({ userId: request.userId, provider: request.newProvider, accountNumber: request.newAccountNumber, locked: true });
+  }
+  recordAudit({
+    actorId: (req as any).user.id,
+    eventType: "payout_account_change_reviewed",
+    payload: { requestId: request.id, approved: parsed.data.approve },
+  });
+  return res.json(request);
 });
 
 app.get("/admin/audit", requireAuth, requireRole(["super_admin"]), (req, res) => {

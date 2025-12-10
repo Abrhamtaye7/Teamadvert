@@ -40,7 +40,11 @@ Generate a TOTP using the secret logged at startup (`otplib` compatible). Use th
 - `/payments/refund` → super-admin endpoint to atomically reverse a transaction using ledger deltas
 - `/merchant/wallet` & `/merchant/withdraw` → enforce 80% cap + TOTP
 - `/developer/wallet` & `/developer/withdraw` → same withdrawal logic with daily cap based on start-of-day balance
+- `/payout/account` → view current locked payout account (merchant admins + developers)
+- `/payout/account/setup` → one-time account lock; blocks withdrawals until present
+- `/payout/account/change-request` → submit change; super-admin must approve via `/admin/payout/change/approve`
 - `/admin/config` & `/admin/config/update` → mutable commission/split settings
 - `/admin/audit` & `/payouts` → view immutable audit + payout queues
+- `/admin/payout/change-requests` → review all change requests
 
 This implementation is intentionally simple (in-memory, no persistence, no encryption) to let us validate flows fast. Swap the storage layer for Prisma/PostgreSQL plus encryption per PRD when ready.

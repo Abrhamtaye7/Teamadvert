@@ -53,5 +53,25 @@ export interface PayoutRequest {
   walletId: string;
   amount: number;
   status: "pending" | "approved" | "rejected";
+  provider?: string;
+  reference?: string;
+  createdAt: Date;
+}
+
+export interface PayoutAccount {
+  id: string;
+  userId: string;
+  accountNumber: string;
+  provider: string;
+  locked: boolean;
+  createdAt: Date;
+}
+
+export interface PayoutAccountChangeRequest {
+  id: string;
+  userId: string;
+  newAccountNumber: string;
+  newProvider: string;
+  status: "pending" | "approved" | "rejected";
   createdAt: Date;
 }

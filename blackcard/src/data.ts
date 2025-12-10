@@ -1,7 +1,17 @@
 import { v4 as uuid } from "uuid";
 import { authenticator } from "otplib";
 import { config } from "./config";
-import { AuditEvent, Card, PayoutRequest, Transaction, TransactionLedgerEntry, User, Wallet } from "./types";
+import {
+  AuditEvent,
+  Card,
+  PayoutAccount,
+  PayoutAccountChangeRequest,
+  PayoutRequest,
+  Transaction,
+  TransactionLedgerEntry,
+  User,
+  Wallet,
+} from "./types";
 
 export const users: User[] = [
   { id: uuid(), username: "customer1", role: "customer", pin: "1234" },
@@ -19,6 +29,8 @@ export const ledgers: TransactionLedgerEntry[] = [];
 export const audits: AuditEvent[] = [];
 export const payouts: PayoutRequest[] = [];
 export const refundedTransactions = new Set<string>();
+export const payoutAccounts: PayoutAccount[] = [];
+export const payoutAccountChangeRequests: PayoutAccountChangeRequest[] = [];
 
 type WithdrawalWindow = {
   dateKey: string;
@@ -51,6 +63,13 @@ devs.forEach((dev, index) => getWallet(dev.id, "developer", 0 + percentages[inde
 
 const central = getWallet("central", "central", 0);
 
+// Seed payout accounts (locked per PRD)
+const seedPayout = (userId: string, provider: string, accountNumber: string) =>
+  payoutAccounts.push({ id: uuid(), userId, provider, accountNumber, locked: true, createdAt: new Date() });
+
+seedPayout(merchant.id, "telebirr", "MERCHANT-ACC-001");
+devs.forEach((dev, idx) => seedPayout(dev.id, "mpesa", `DEV-ACC-00${idx + 1}`));
+
 cards.push({ uid: "CARD-001", customerId: customer.id });
 
 export const findUserByUsername = (username: string) => users.find((u) => u.username === username);
@@ -60,6 +79,24 @@ export const findWallet = (ownerId: string, type: Wallet["type"]) => wallets.fin
 export const getCentralWallet = () => central;
 export const getWithdrawalWindow = (walletId: string) => withdrawalWindows.get(walletId);
 export const updateWithdrawalWindow = (walletId: string, window: WithdrawalWindow) => withdrawalWindows.set(walletId, window);
+export const findPayoutAccount = (userId: string) => payoutAccounts.find((p) => p.userId === userId);
+export const upsertPayoutAccount = (account: Omit<PayoutAccount, "id" | "createdAt"> & { id?: string }) => {
+  const existing = account.id ? payoutAccounts.find((p) => p.id === account.id) : findPayoutAccount(account.userId);
+  if (existing) {
+    existing.accountNumber = account.accountNumber;
+    existing.provider = account.provider;
+    existing.locked = account.locked;
+    return existing;
+  }
+  const record: PayoutAccount = { id: account.id ?? uuid(), createdAt: new Date(), ...account };
+  payoutAccounts.push(record);
+  return record;
+};
+export const insertChangeRequest = (req: Omit<PayoutAccountChangeRequest, "createdAt">) => {
+  const request: PayoutAccountChangeRequest = { ...req, createdAt: new Date() };
+  payoutAccountChangeRequests.push(request);
+  return request;
+};
 
 export const recordAudit = (event: Omit<AuditEvent, "id" | "createdAt">) => {
   const audit: AuditEvent = { ...event, id: uuid(), createdAt: new Date() };
