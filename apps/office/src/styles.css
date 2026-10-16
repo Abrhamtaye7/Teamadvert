@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/* Dark mode follows the `dark` class on <html> (set from the theme toggle) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. To rebrand, change the values in this block (and the light/dark surface
+ * variables below); every page uses these names, never raw colours.
+ */
+@theme {
+  /* Brand blue (logo) */
+  --color-brand-50: #eef5ff;
+  --color-brand-100: #d9e8fe;
+  --color-brand-200: #bbd6fd;
+  --color-brand-300: #8cbcfb;
+  --color-brand-400: #5698f6;
+  --color-brand-500: #2f78f0;
+  --color-brand-600: #1a73e8;
+  --color-brand-700: #1659c4;
+  --color-brand-800: #18489f;
+  --color-brand-900: #193f7d;
+
+  /* Brand orange (logo) */
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd4;
+  --color-accent-400: #fbaa4c;
+  --color-accent-500: #f7931e;
+  --color-accent-600: #e07a0c;
+  --color-accent-700: #b95c0d;
+
+  /* Semantic surfaces, switched for dark mode below */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
+  --radius-card: 0.875rem;
+}
+
+:root {
+  --canvas: #f4f6fb;
+  --surface: #ffffff;
+  --surface-muted: #f1f4f9;
+  --line: #e2e7ef;
+  --ink: #0f172a;
+  --ink-muted: #475569;
+  --ink-subtle: #8a97ab;
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #0b1120;
+  --surface: #111a2e;
+  --surface-muted: #17223a;
+  --line: #24314d;
+  --ink: #e8eefb;
+  --ink-muted: #a7b3c9;
+  --ink-subtle: #6f7d97;
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+  /* 16px inputs stop iOS from zooming in on focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
+}
+
+/* Safe-area padding for phones with a home indicator */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+dialog::backdrop {
+  background: rgb(15 23 42 / 0.55);
+}
