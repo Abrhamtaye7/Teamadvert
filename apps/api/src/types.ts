@@ -1,5 +1,6 @@
 import type { Db } from "@teamadvert/db";
 import type { Config } from "./config";
+import type { CbeVerifier } from "./lib/cbe";
 import type { FixedWindowLimiter } from "./lib/rateLimit";
 import type { AuthUser } from "./lib/sessions";
 
@@ -7,6 +8,7 @@ export type Deps = {
   db: Db;
   config: Config;
   loginLimiter: FixedWindowLimiter;
+  cbeVerifier: CbeVerifier;
 };
 
 export type AppEnv = {

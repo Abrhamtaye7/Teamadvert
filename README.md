@@ -12,7 +12,6 @@ static sites on Apache, the API as a Node.js app, PostgreSQL database.
 | `apps/web` | Public marketing site at `/` — Astro (static, SEO) |
 | `packages/db` | PostgreSQL schema (Drizzle), migrations, seed, document-number counters, PIN hashing |
 | `packages/shared` | Zod schemas shared by API and office app |
-| `legacy/backend` | Old Express + Prisma + MySQL backend, reference only while porting — deleted after the API port |
 | `tools/` | Site assembly script, local database init |
 
 ## Getting started
@@ -38,6 +37,7 @@ npm run dev:web          # http://localhost:4321
 | `npm test` | Run all tests (needs `npm run db:up`) |
 | `npm run build` | Build web + office into `dist/site` |
 | `npm run preview` | Production-like preview: everything on http://localhost:4000 (site, /office, /api) |
+| `npm run package:cpanel` | Build everything and lay out the cPanel upload in `dist/cpanel/` |
 | `npm run db:generate` | Create a migration after changing `packages/db/src/schema.ts` |
 | `npm run db:migrate` / `db:seed` | Apply migrations / seed defaults |
 

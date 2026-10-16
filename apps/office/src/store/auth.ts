@@ -37,8 +37,19 @@ const storage = {
   },
 };
 
+function cachedUser(): User | null {
+  try {
+    const raw = storage.get();
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
+  // Restored synchronously so the route guard sees it on the first render (legacy restored it in an
+  // effect, after the guard had already redirected to /login, so every refresh landed on the dashboard).
+  user: cachedUser(),
   setSession: ({ user }) => {
     storage.set(JSON.stringify(user));
     set({ user });
@@ -56,16 +67,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 }));
 
-/** Restores the cached user, then confirms the session with the server (a 401 clears it). */
+/** Confirms the cached session with the server and refreshes the profile (a 401 clears it). */
 export function hydrateAuth() {
-  const cached = storage.get();
-  if (cached && !useAuthStore.getState().user) {
-    try {
-      useAuthStore.setState({ user: JSON.parse(cached) });
-    } catch {
-      storage.set(null);
-    }
-  }
   if (useAuthStore.getState().user) {
     api
       .get("/auth/me")

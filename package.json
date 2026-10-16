@@ -18,7 +18,8 @@
     "db:generate": "npm run generate -w @teamadvert/db",
     "db:migrate": "npm run migrate -w @teamadvert/db",
     "db:seed": "npm run seed -w @teamadvert/db",
-    "db:studio": "npm run studio -w @teamadvert/db"
+    "db:studio": "npm run studio -w @teamadvert/db",
+    "package:cpanel": "npm run build && npm run build -w @teamadvert/api && node tools/package-cpanel.mjs"
   },
   "engines": {
     "node": ">=22"

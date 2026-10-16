@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { useAuthStore } from "../store/auth";
-import { hydrateAuth } from "../store/auth";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Return to the page that sent us here (set by ProtectedRoute), else the dashboard
+  const returnTo = (location.state as { from?: string } | null)?.from || "/";
   const { user, setSession } = useAuthStore();
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
@@ -13,9 +15,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    hydrateAuth();
-    if (user) navigate("/");
-  }, [user, navigate]);
+    if (user) navigate(returnTo, { replace: true });
+  }, [user, navigate, returnTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { username, pin });
       setSession(res.data);
-      navigate("/");
+      navigate(returnTo, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");
     } finally {

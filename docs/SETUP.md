@@ -29,29 +29,65 @@ Nameservers). With those, DNS is managed in cPanel → **Zone Editor**, and `tea
 
 ```bash
 npm ci
-npm run build                     # web + office → dist/site
-npm run build -w @teamadvert/api  # API → apps/api/dist/server.mjs (single file, no npm install needed on the server)
+npm run package:cpanel
 ```
+
+This builds everything and lays out the upload in `dist/cpanel/`:
+
+| Folder | Upload to | Contains |
+|---|---|---|
+| `dist/cpanel/teamadvert-api/` | `~/teamadvert-api/` | `app.cjs`, `dist/server.mjs` (the API, no `npm install` needed), `dist/db-cli.mjs`, `dist/backup-cli.mjs`, `migrations/` |
+| `dist/cpanel/public_html/` | `~/public_html/` | public site, `office/`, both `.htaccess` files |
 
 ## 4. API (Node.js App)
 
-1. Upload `apps/api/app.cjs`, `apps/api/dist/` and `packages/db/migrations/` into `~/teamadvert-api/`
-   (keep the folder names; migrations go to `~/teamadvert-api/migrations/`).
+1. Upload `dist/cpanel/teamadvert-api/` to `~/teamadvert-api/` (File Manager → Upload a zip → Extract).
 2. cPanel → **Setup Node.js App** → *Create Application*:
    - Node.js version: **22.23.3**, Application mode: **Production**
    - Application root: `teamadvert-api`
    - Application URL: `teamadvertplc.com` / `api`
    - Application startup file: `app.cjs`
-   - Environment variables: `NODE_ENV=production`, `DATABASE_URL=<from step 2>`, `SEED_ADMIN_PIN=<4 digits>`
-3. Run migrations and the seed once (cPanel → Terminal, after `source` of the app's virtualenv shown at the top of
-   the Node.js App page) — commands added in the deployment phase.
+   - Environment variables:
+
+     | Name | Value |
+     |---|---|
+     | `NODE_ENV` | `production` |
+     | `DATABASE_URL` | from step 2 |
+     | `SEED_ADMIN_PIN` | a 4-digit PIN for the first `admin` login |
+     | `BACKUP_DIR` | `/home/teamadub/backups` (outside `public_html`: backups contain PIN hashes) |
+3. cPanel → **Terminal**, paste the "Enter to the virtual environment" command shown at the top of the Node.js App
+   page, then:
+   ```bash
+   cd ~/teamadvert-api
+   node dist/db-cli.mjs migrate
+   node dist/db-cli.mjs seed
+   ```
 4. Restart the app and open `https://teamadvertplc.com/api/health` → `{"ok":true}`.
    (**verify** whether Passenger passes the `/api` prefix through to the app; the API expects it.)
+5. Log in at `https://teamadvertplc.com/office` as `admin` with `SEED_ADMIN_PIN`, then change the PIN in Settings
+   and remove `SEED_ADMIN_PIN` from the app's environment variables.
+
+### Updating later
+
+Upload the new `teamadvert-api/` over the old one, run `node dist/db-cli.mjs migrate` (safe to repeat), and restart
+the app in **Setup Node.js App**.
 
 ## 5. Websites
 
-Upload the contents of `dist/site/` into `public_html/` (this includes `office/` and both `.htaccess` files).
-Don't delete `public_html/api/` — cPanel creates it for the Node.js App.
+Upload the contents of `dist/cpanel/public_html/` into `~/public_html/` (this includes `office/` and both
+`.htaccess` files). Don't delete `public_html/api/` if cPanel created it for the Node.js App.
+
+## 6. Weekly backup
+
+cPanel → **Cron Jobs** → add (Sundays 02:00), using the node path from the Node.js App page:
+
+```
+0 2 * * 0  cd ~/teamadvert-api && /home/teamadub/nodevenv/teamadvert-api/22/bin/node dist/backup-cli.mjs
+```
+
+The cron job needs `DATABASE_URL` and `BACKUP_DIR` too: put them in `~/teamadvert-api/.env` (it is read
+automatically; set its permissions to 600). Admins can also run a backup from the API (`POST /api/backups/run`).
+Each backup is a gzipped JSON dump of every table except login sessions. (**verify** the nodevenv path.)
 
 ## Local development
 

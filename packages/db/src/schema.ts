@@ -60,7 +60,7 @@ export type Address = {
   city?: string;
   subcity?: string;
   woreda?: string;
-  houseNo?: string;
+  house?: string;
 };
 
 // ---------- Users & access ----------
@@ -207,7 +207,7 @@ export const suppliers = pgTable(
     contactPerson: varchar({ length: 191 }),
     phones: jsonb().$type<string[]>(),
     email: varchar({ length: 191 }),
-    address: jsonb().$type<Address>(),
+    address: jsonb().$type<Address | string>(), // legacy supplier form sends free text
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

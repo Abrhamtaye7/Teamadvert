@@ -7,6 +7,7 @@ import { Hono } from "hono";
 import { createDb, loadRootEnv } from "@teamadvert/db";
 import { createApp } from "./app";
 import { loadConfig } from "./config";
+import { createCbeVerifier } from "./lib/cbe";
 import { FixedWindowLimiter } from "./lib/rateLimit";
 
 loadRootEnv();
@@ -15,7 +16,7 @@ const { db, pool } = createDb(config.databaseUrl);
 
 // Legacy limit: 20 login attempts per IP per 15 minutes (per-account lockout is separate)
 const loginLimiter = new FixedWindowLimiter(20, 15 * 60_000);
-const api = createApp({ db, config, loginLimiter });
+const api = createApp({ db, config, loginLimiter, cbeVerifier: createCbeVerifier(config.cbe) });
 
 const root = new Hono();
 root.route("/", api);

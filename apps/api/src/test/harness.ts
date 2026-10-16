@@ -1,7 +1,11 @@
 // Shared setup for API integration tests: fresh test database, seeded admin, app instance and request helpers.
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { createDb, dropAllTables, loadRootEnv, runMigrations, seedDatabase, type Db } from "@teamadvert/db";
 import { createApp } from "../app";
 import type { Config } from "../config";
+import { DEFAULT_CBE_CONFIG, type CbeVerificationResult, type CbeVerifier } from "../lib/cbe";
 import { FixedWindowLimiter } from "../lib/rateLimit";
 
 export const ADMIN_PIN = "4821";
@@ -25,10 +29,21 @@ export async function createHarness(overrides: Partial<Config> = {}) {
     sessionIdleMinutes: 120,
     sessionMaxHours: 12,
     cookieSecure: false,
+    backupDir: await mkdtemp(path.join(tmpdir(), "teamadvert-backup-")),
+    cbe: DEFAULT_CBE_CONFIG,
     ...overrides,
   };
   const loginLimiter = new FixedWindowLimiter(1000, 60_000);
-  const app = createApp({ db, config, loginLimiter });
+  // Tests set `cbe.next` to control what the (fake) bank returns
+  const cbe: { next: CbeVerificationResult; calls: { trx: string; amount: number }[] } = {
+    next: { success: true },
+    calls: [],
+  };
+  const cbeVerifier: CbeVerifier = async (trx, amount) => {
+    cbe.calls.push({ trx, amount });
+    return cbe.next;
+  };
+  const app = createApp({ db, config, loginLimiter, cbeVerifier });
 
   async function request(method: string, path: string, { body, cookie }: { body?: unknown; cookie?: string } = {}) {
     const res = await app.request(path, {
@@ -57,5 +72,5 @@ export async function createHarness(overrides: Partial<Config> = {}) {
     return setCookie.split(";")[0];
   }
 
-  return { app, db: db as Db, config, loginLimiter, request, login, close: () => pool.end() };
+  return { app, db: db as Db, config, loginLimiter, cbe, request, login, close: () => pool.end() };
 }

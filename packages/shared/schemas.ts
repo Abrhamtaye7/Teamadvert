@@ -10,7 +10,7 @@ export const userLoginSchema = z.object({
 });
 
 export const customerSchema = z.object({
-  customerId: z.string().min(1),
+  customerId: z.string().optional(), // assigned by the server; legacy clients send "TEMP"
   name: z.string().min(1),
   company: z.string().optional(),
   phone: z.string().optional(),
@@ -29,7 +29,7 @@ export const customerSchema = z.object({
 export const customerUpdateSchema = customerSchema.partial();
 
 export const supplierSchema = z.object({
-  supplierId: z.string().min(1),
+  supplierId: z.string().optional(), // assigned by the server; legacy clients send "TEMP"
   companyName: z.string().min(1),
   contactPerson: z.string().optional(),
   phone: z.string().optional(),
@@ -242,3 +242,25 @@ export type PaymentInput = z.infer<typeof paymentSchema>;
 export type CbeVerifyInput = z.infer<typeof cbeVerifySchema>;
 export type UserCreateInput = z.infer<typeof userCreateSchema>;
 export type SupplierItemPriceInput = z.infer<typeof supplierItemPriceSchema>;
+
+export const jobApproveSchema = z.object({
+  price: z.number().nonnegative().optional(),
+  deadline: z.string().optional(),
+  priority: z.enum(["high", "normal", "low"]).optional(),
+  advancePayment: z.number().nonnegative().optional(),
+  adminNotes: z.string().optional(),
+});
+
+export const jobProductionSchema = z.object({
+  // legacy clients also send "Completed"
+  status: z.string().transform((s) => (s.toLowerCase() === "completed" ? "completed" : "in_progress")),
+});
+
+export const jobFinanceSchema = z.object({
+  status: z.enum(["finance_review", "closed", "approved"]),
+});
+
+export const customerNoteSchema = z.object({ note: z.string().trim().min(1, "Note required") });
+export const supplierNoteSchema = z.object({ content: z.string().trim().min(1, "Note required") });
+
+export const proformaUpdateSchema = proformaCreateSchema.partial();

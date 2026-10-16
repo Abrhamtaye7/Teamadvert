@@ -84,7 +84,7 @@ describe("POST /api/auth/login", () => {
   });
 
   it("rate limits by IP", async () => {
-    const app = createApp({ db: h.db, config: h.config, loginLimiter: new FixedWindowLimiter(2, 60_000) });
+    const app = createApp({ db: h.db, config: h.config, loginLimiter: new FixedWindowLimiter(2, 60_000), cbeVerifier: async () => ({ success: true }) });
     const attempt = () =>
       app.request("/api/auth/login", {
         method: "POST",
