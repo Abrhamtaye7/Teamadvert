@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { changePinSchema, userLoginSchema } from "@teamadvert/shared/schemas";
@@ -51,7 +51,7 @@ export const authRoutes = new Hono<AppEnv>()
       })
       .from(users)
       .innerJoin(roles, eq(roles.id, users.roleId))
-      .where(eq(users.username, username));
+      .where(eq(sql`lower(${users.username})`, username.trim().toLowerCase()));
     if (!user || !user.isActive) throw new ApiError(401, INVALID_LOGIN);
 
     const now = new Date();

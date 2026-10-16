@@ -58,6 +58,7 @@ describe("/api/users", () => {
 
   it("validates input", async () => {
     expect((await createUser("dawit")).status).toBe(409);
+    expect((await createUser("Dawit")).status).toBe(409);
     const badPin = await h.request("POST", "/api/users", { cookie: admin, body: { username: "abc", pin: "12ab", roleId: roleIds.Sales } });
     expect(badPin.status).toBe(400);
     expect(badPin.json.issues).toBeDefined();

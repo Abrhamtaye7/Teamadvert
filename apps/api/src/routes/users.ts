@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import {
   userAccessUpdateSchema,
@@ -92,8 +92,13 @@ export const userRoutes = new Hono<AppEnv>()
 
   .post("/", async (c) => {
     const { db, user: actor } = c.var;
-    const { username, pin, roleId, accessRoleIds } = await readJson(c, userCreateSchema);
-    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.username, username));
+    const input = await readJson(c, userCreateSchema);
+    const { pin, roleId, accessRoleIds } = input;
+    const username = input.username.trim();
+    const [existing] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(sql`lower(${users.username})`, username.toLowerCase()));
     if (existing) throw new ApiError(409, "Username already exists");
     await assertRoleExists(db, roleId);
     // Legacy behaviour: no access roles given means all of them

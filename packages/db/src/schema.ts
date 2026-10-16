@@ -1,6 +1,7 @@
 // Ported from legacy/backend/prisma/schema.prisma to PostgreSQL. Columns are camelCase in code and
 // snake_case in the database (drizzle `casing: "snake_case"`). Money is NUMERIC(14,2) read as JS numbers.
 // `serial` ids (not identity columns) keep the DDL compatible with older PostgreSQL versions on shared hosting.
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -72,8 +73,11 @@ export const roles = pgTable("roles", {
   updatedAt: updatedAt(),
 });
 
-export const users = pgTable("users", {
+export const users = pgTable(
+  "users",
+  {
   id: id(),
+  // Usernames are case-insensitive (the legacy MySQL collation was): see the lower() unique index below.
   username: varchar({ length: 64 }).notNull().unique(),
   pinHash: varchar({ length: 255 }).notNull(),
   roleId: integer()
@@ -88,7 +92,9 @@ export const users = pgTable("users", {
   preferences: jsonb().$type<Record<string, unknown>>(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
-});
+  },
+  (t) => [uniqueIndex("uq_users_username_lower").on(sql`lower(${t.username})`)],
+);
 
 /** Login sessions. `id` is the SHA-256 of the cookie token, so a DB leak doesn't leak live sessions. */
 export const sessions = pgTable(

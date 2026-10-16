@@ -54,6 +54,12 @@ describe("POST /api/auth/login", () => {
     expect(wrong.json.message).toBe(unknown.json.message);
   });
 
+  it("treats usernames case-insensitively, like the legacy MySQL app", async () => {
+    const res = await h.request("POST", "/api/auth/login", { body: { username: " ADMIN ", pin: ADMIN_PIN } });
+    expect(res.status).toBe(200);
+    expect(res.json.user.username).toBe("admin");
+  });
+
   it("rejects malformed input", async () => {
     const res = await h.request("POST", "/api/auth/login", { body: { username: "admin", pin: "12" } });
     expect(res.status).toBe(400);
