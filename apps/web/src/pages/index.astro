@@ -1,0 +1,40 @@
+---
+// Placeholder until the marketing site is built in Phase 5.
+const title = "TEAM ADVERT PLC — Advertising & Printing";
+const description = "TEAM ADVERT PLC — advertising, branding and printing services.";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/png" href="/teamlogo.png" />
+    <link rel="canonical" href={Astro.url.href} />
+  </head>
+  <body>
+    <main>
+      <img src="/teamlogo.png" alt="TEAM ADVERT PLC logo" width="160" />
+      <h1>TEAM ADVERT PLC</h1>
+      <p>Our new website is coming soon.</p>
+    </main>
+  </body>
+</html>
+
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #fff;
+    color: #111;
+  }
+  main {
+    min-height: 100vh;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    padding: 1rem;
+  }
+</style>

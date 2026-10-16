@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /office
+Disallow: /api
+
+Sitemap: https://teamadvertplc.com/sitemap-index.xml

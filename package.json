@@ -1,0 +1,26 @@
+{
+  "name": "teamadvert",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @teamadvert/api",
+    "dev:office": "npm run dev -w @teamadvert/office",
+    "dev:web": "npm run dev -w @teamadvert/web",
+    "build": "npm run build -w @teamadvert/web && npm run build -w @teamadvert/office && node tools/assemble-site.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "preview": "npm run build && npm run build -w @teamadvert/api && SITE_DIR=dist/site node apps/api/dist/server.mjs",
+    "db:up": "docker compose up -d --wait",
+    "db:generate": "npm run generate -w @teamadvert/db",
+    "db:migrate": "npm run migrate -w @teamadvert/db",
+    "db:seed": "npm run seed -w @teamadvert/db",
+    "db:studio": "npm run studio -w @teamadvert/db"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

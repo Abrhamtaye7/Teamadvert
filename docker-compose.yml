@@ -1,14 +1,22 @@
+# Local development database only. Production uses the PostgreSQL database created in cPanel.
 services:
   db:
-    image: mysql:8.0
+    image: postgres:16
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: teamadvert
+      POSTGRES_USER: teamadvert
+      POSTGRES_PASSWORD: teamadvert
+      POSTGRES_DB: teamadvert
     ports:
-      - "3306:3306"
+      # 5432 is often taken by other local Postgres instances
+      - "5433:5432"
     volumes:
-      - db_data:/var/lib/mysql
+      - pg_data:/var/lib/postgresql/data
+      - ./tools/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teamadvert -d teamadvert"]
+      interval: 5s
+      retries: 20
 
 volumes:
-  db_data:
+  pg_data:
