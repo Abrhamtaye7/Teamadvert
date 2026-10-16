@@ -57,7 +57,7 @@ function PaymentForm({ job, error, onSubmit }: { job: Job; error: string | null;
       <dl className="grid grid-cols-3 gap-2 rounded-lg bg-surface-muted p-3 text-center text-sm">
         <div><dt className="text-xs text-ink-subtle">Price</dt><dd className="font-medium tabular-nums">{money(price)}</dd></div>
         <div><dt className="text-xs text-ink-subtle">Paid</dt><dd className="font-medium tabular-nums">{money(paid)}</dd></div>
-        <div><dt className="text-xs text-ink-subtle">Balance</dt><dd className="font-semibold text-accent-600 tabular-nums">{money(balance)}</dd></div>
+        <div><dt className="text-xs text-ink-subtle">Balance</dt><dd className="font-semibold text-accent-700 dark:text-accent-400 tabular-nums">{money(balance)}</dd></div>
       </dl>
       <div className="grid grid-cols-2 gap-1 rounded-lg bg-surface-muted p-1" role="radiogroup" aria-label="Payment method">
         {(["Cash", "Bank"] as const).map((m) => (

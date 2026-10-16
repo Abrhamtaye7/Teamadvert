@@ -58,7 +58,7 @@ export default function ItemDetailPage() {
               {item.supplierPriceHistory.map((h) => (
                 <li key={h.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <Link to={`/suppliers/${h.supplier.id}`} className="font-medium text-brand-600 hover:underline">{h.supplier.companyName}</Link>
+                    <Link to={`/suppliers/${h.supplier.id}`} className="font-medium text-brand-700 dark:text-brand-300 hover:underline">{h.supplier.companyName}</Link>
                     <p className="text-xs text-ink-subtle">{date(h.createdAt)} · {h.user?.username ?? "—"}</p>
                   </div>
                   <p className="tabular-nums">{h.oldPrice != null && <span className="mr-1 text-ink-subtle line-through">{money(h.oldPrice)}</span>}<span className="font-medium">{money(h.newPrice)}</span></p>
@@ -74,7 +74,7 @@ export default function ItemDetailPage() {
               {item.customerPriceHistory.map((h) => (
                 <li key={h.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <Link to={`/customers/${h.customer.id}`} className="font-medium text-brand-600 hover:underline">{h.customer.name}</Link>
+                    <Link to={`/customers/${h.customer.id}`} className="font-medium text-brand-700 dark:text-brand-300 hover:underline">{h.customer.name}</Link>
                     <p className="text-xs text-ink-subtle">{date(h.createdAt)}</p>
                   </div>
                   <span className="font-medium tabular-nums">{money(h.newPrice)}</span>

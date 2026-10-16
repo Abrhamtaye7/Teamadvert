@@ -51,7 +51,7 @@ export default function NotificationsPage() {
               const href = target(n);
               const body = (
                 <>
-                  <span className={cn("mt-0.5 rounded-lg p-2", n.read ? "bg-surface-muted text-ink-subtle" : "bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300")}>
+                  <span className={cn("mt-0.5 rounded-lg p-2", n.read ? "bg-surface-muted text-ink-subtle" : "bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300")}>
                     <Icon className="size-4" />
                   </span>
                   <div className="min-w-0 flex-1">

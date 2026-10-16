@@ -128,7 +128,7 @@ export default function ProformaDetailPage() {
             <CardHeader title="Customer" />
             <div className="p-4 md:p-5">
               {p.customer ? (
-                <Link to={`/customers/${p.customer.id}`} className="font-medium text-brand-600 hover:underline">
+                <Link to={`/customers/${p.customer.id}`} className="font-medium text-brand-700 dark:text-brand-300 hover:underline">
                   {p.customer.name}
                 </Link>
               ) : (

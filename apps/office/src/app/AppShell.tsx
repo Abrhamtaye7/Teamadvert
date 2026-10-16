@@ -80,7 +80,7 @@ function NavLinks({ items, onNavigate, unread }: { items: NavItem[]; onNavigate?
           <Icon className="size-[18px]" />
           <span className="flex-1">{label}</span>
           {to === "/notifications" && unread > 0 && (
-            <span className="rounded-full bg-accent-500 px-1.5 text-xs font-semibold text-white">{unread}</span>
+            <span className="rounded-full bg-accent-500 px-1.5 text-xs font-semibold text-brand-950">{unread}</span>
           )}
         </NavLink>
       ))}
@@ -140,7 +140,7 @@ export function AppShell() {
               key={to}
               to={to}
               end={end}
-              className={({ isActive }) => cn("flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium", isActive ? "text-brand-600 dark:text-brand-300" : "text-ink-subtle")}
+              className={({ isActive }) => cn("flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium", isActive ? "text-brand-700 dark:text-brand-300" : "text-ink-subtle")}
             >
               <Icon className="size-5" />
               {short ?? label}

@@ -61,11 +61,11 @@ export default function FinancePage() {
           rowKey={(j) => j.id}
           empty={<EmptyState icon={Wallet} title="Nothing waiting" description={queue === "completed" ? "Completed jobs appear here for payment." : "Bank-paid jobs appear here until they're closed."} />}
           columns={[
-            { key: "number", header: "Job", cell: (j) => <Link to={`/jobs/${j.id}`} className="font-medium text-brand-600 hover:underline">{j.number}</Link> },
+            { key: "number", header: "Job", cell: (j) => <Link to={`/jobs/${j.id}`} className="font-medium text-brand-700 dark:text-brand-300 hover:underline">{j.number}</Link> },
             { key: "customer", header: "Customer", cell: (j) => j.customer?.name ?? "—" },
             { key: "price", header: "Price", align: "right", cell: (j) => money(j.price) },
             { key: "paid", header: "Paid", align: "right", cell: (j) => money(jobBalance(j).paid) },
-            { key: "balance", header: "Balance", align: "right", cell: (j) => <span className="font-semibold text-accent-600">{money(jobBalance(j).balance)}</span> },
+            { key: "balance", header: "Balance", align: "right", cell: (j) => <span className="font-semibold text-accent-700 dark:text-accent-400">{money(jobBalance(j).balance)}</span> },
             {
               key: "actions",
               header: "",
@@ -83,8 +83,8 @@ export default function FinancePage() {
             return (
               <div>
                 <div className="flex items-center justify-between">
-                  <Link to={`/jobs/${j.id}`} className="font-medium text-brand-600">{j.number}</Link>
-                  <span className="text-sm font-semibold text-accent-600 tabular-nums">{money(b.balance)}</span>
+                  <Link to={`/jobs/${j.id}`} className="font-medium text-brand-700 dark:text-brand-300">{j.number}</Link>
+                  <span className="text-sm font-semibold text-accent-700 dark:text-accent-400 tabular-nums">{money(b.balance)}</span>
                 </div>
                 <p className="text-sm text-ink-muted">{j.customer?.name} · paid {money(b.paid)} of {money(b.price)}</p>
                 <div className="mt-2 flex gap-2">
@@ -107,7 +107,7 @@ export default function FinancePage() {
           empty={<EmptyState icon={CircleDollarSign} title="No payments yet" />}
           columns={[
             { key: "date", header: "Date", cell: (p) => dateTime(p.createdAt) },
-            { key: "job", header: "Job", cell: (p) => (p.jobOrder ? <Link to={`/jobs/${p.jobId}`} className="text-brand-600 hover:underline">{p.jobOrder.number}</Link> : "—") },
+            { key: "job", header: "Job", cell: (p) => (p.jobOrder ? <Link to={`/jobs/${p.jobId}`} className="text-brand-700 dark:text-brand-300 hover:underline">{p.jobOrder.number}</Link> : "—") },
             { key: "method", header: "Method", cell: (p) => <span>{p.method}{p.transactionNumber && <span className="ml-1 font-mono text-xs text-ink-muted">{p.transactionNumber}</span>}</span> },
             { key: "amount", header: "Amount", align: "right", cell: (p) => money(p.amount) },
             {

@@ -18,7 +18,7 @@ const year = new Date().getFullYear();
           <ul class="mt-4 flex flex-wrap gap-2 text-sm">
             {socials.map(([name, url]) => (
               <li>
-                <a href={url} rel="noopener" target="_blank" class="inline-block rounded-full bg-white/10 px-3 py-1 capitalize hover:bg-white/20 hover:text-white">
+                <a href={url} rel="noopener" target="_blank" class="inline-flex min-h-11 items-center rounded-full bg-white/10 px-4 capitalize hover:bg-white/20 hover:text-white">
                   {name}
                 </a>
               </li>
@@ -29,26 +29,26 @@ const year = new Date().getFullYear();
     </div>
     <div>
       <p class="text-sm font-semibold text-white">Contact</p>
-      <ul class="mt-3 space-y-2 text-sm">
-        {c.phones.map((p) => <li class="flex gap-2"><Phone class="mt-0.5 size-4 shrink-0" /><a href={telHref(p)} class="hover:text-white">{p}</a></li>)}
-        <li class="flex gap-2"><Mail class="mt-0.5 size-4 shrink-0" /><a href={`mailto:${c.email}`} class="hover:text-white">{c.email}</a></li>
-        <li class="flex gap-2"><MapPin class="mt-0.5 size-4 shrink-0" /><a href={c.mapUrl || "/contact/"} rel="noopener" target={c.mapUrl ? "_blank" : undefined} class="hover:text-white">{fullAddress()}</a></li>
+      <ul class="mt-3 space-y-1 text-sm">
+        {c.phones.map((p) => <li class="flex items-center gap-2"><Phone class="mt-0.5 size-4 shrink-0" /><a href={telHref(p)} class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">{p}</a></li>)}
+        <li class="flex items-center gap-2"><Mail class="mt-0.5 size-4 shrink-0" /><a href={`mailto:${c.email}`} class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">{c.email}</a></li>
+        <li class="flex items-center gap-2"><MapPin class="mt-0.5 size-4 shrink-0" /><a href={c.mapUrl || "/contact/"} rel="noopener" target={c.mapUrl ? "_blank" : undefined} class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">{fullAddress()}</a></li>
         {hours && <li class="flex gap-2"><Clock class="mt-0.5 size-4 shrink-0" />{hours}</li>}
       </ul>
     </div>
     <div>
       <p class="text-sm font-semibold text-white">Company</p>
-      <ul class="mt-3 space-y-2 text-sm">
-        <li><a href="/services/" class="hover:text-white">Services</a></li>
-        <li><a href="/about/" class="hover:text-white">About us</a></li>
-        <li><a href="/contact/#quote" class="hover:text-white">Request a quote</a></li>
+      <ul class="mt-3 space-y-1 text-sm">
+        <li><a href="/services/" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">Services</a></li>
+        <li><a href="/about/" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">About us</a></li>
+        <li><a href="/contact/#quote" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">Request a quote</a></li>
       </ul>
     </div>
   </div>
   <div class="border-t border-white/10">
     <div class="container-site flex flex-col gap-2 py-5 text-xs text-slate-400 sm:flex-row sm:justify-between">
       <p>© {year} {SITE.name}. All rights reserved.</p>
-      <a href="/office/" rel="nofollow" class="hover:text-white">Staff login</a>
+      <a href="/office/" rel="nofollow" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">Staff login</a>
     </div>
   </div>
 </footer>

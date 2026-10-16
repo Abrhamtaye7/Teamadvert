@@ -79,8 +79,8 @@ export default function CustomerDetailPage() {
           <DetailList
             className="sm:grid-cols-1"
             items={[
-              { label: "Phone", value: c.phones?.length ? c.phones.map((p) => <a key={p} href={`tel:${p}`} className="mr-2 text-brand-600 hover:underline">{p}</a>) : "—" },
-              { label: "Email", value: c.email ? <a href={`mailto:${c.email}`} className="text-brand-600 hover:underline">{c.email}</a> : "—" },
+              { label: "Phone", value: c.phones?.length ? c.phones.map((p) => <a key={p} href={`tel:${p}`} className="mr-2 text-brand-700 dark:text-brand-300 hover:underline">{p}</a>) : "—" },
+              { label: "Email", value: c.email ? <a href={`mailto:${c.email}`} className="text-brand-700 dark:text-brand-300 hover:underline">{c.email}</a> : "—" },
               { label: "TIN", value: c.tin ?? "—" },
               { label: "Address", value: address },
               { label: "Credit limit", value: c.creditLimit != null ? money(c.creditLimit) : "—" },

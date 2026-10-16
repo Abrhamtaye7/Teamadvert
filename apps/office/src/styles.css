@@ -19,6 +19,7 @@
   --color-brand-700: #1659c4;
   --color-brand-800: #18489f;
   --color-brand-900: #193f7d;
+  --color-brand-950: #0b1a3a;
 
   /* Brand orange (logo) */
   --color-accent-50: #fff7ed;
@@ -26,7 +27,7 @@
   --color-accent-400: #fbaa4c;
   --color-accent-500: #f7931e;
   --color-accent-600: #e07a0c;
-  --color-accent-700: #b95c0d;
+  --color-accent-700: #a14d06;
 
   /* Semantic surfaces, switched for dark mode below */
   --color-canvas: var(--canvas);
@@ -48,7 +49,7 @@
   --line: #e2e7ef;
   --ink: #0f172a;
   --ink-muted: #475569;
-  --ink-subtle: #8a97ab;
+  --ink-subtle: #5b687e;
   color-scheme: light;
 }
 
@@ -59,13 +60,26 @@
   --line: #24314d;
   --ink: #e8eefb;
   --ink-muted: #a7b3c9;
-  --ink-subtle: #6f7d97;
+  --ink-subtle: #94a3bb;
   color-scheme: dark;
 }
 
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+  }
+  /* UI/UX Pro Max checklist: pointer on everything clickable, one visible focus ring */
+  button:not(:disabled),
+  [role="button"],
+  [role="tab"],
+  summary,
+  select,
+  label:has(> input[type="checkbox"]) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
   }
   body {
     @apply bg-canvas text-ink font-sans antialiased;

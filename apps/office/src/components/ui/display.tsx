@@ -15,7 +15,7 @@ export function CardHeader({ title, description, action }: { title: ReactNode; d
   return (
     <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3 md:px-5">
       <div className="min-w-0">
-        <h3 className="font-semibold">{title}</h3>
+        <h2 className="font-semibold">{title}</h2>
         {description && <p className="mt-0.5 text-sm text-ink-muted">{description}</p>}
       </div>
       {action}
@@ -66,7 +66,7 @@ export function StatusBadge({ status }: { status: string | null | undefined }) {
 }
 
 export function Spinner({ className }: { className?: string }) {
-  return <Loader2 className={cn("size-5 animate-spin text-brand-600", className)} aria-label="Loading" />;
+  return <Loader2 className={cn("size-5 animate-spin text-brand-700 dark:text-brand-300", className)} aria-label="Loading" />;
 }
 
 export function PageLoader() {
@@ -106,7 +106,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
       <AlertTriangle className="mb-2 size-6 text-rose-500" />
       <p className="text-sm text-ink-muted">{message}</p>
       {onRetry && (
-        <button type="button" onClick={onRetry} className="mt-3 text-sm font-medium text-brand-600 hover:underline">
+        <button type="button" onClick={onRetry} className="mt-3 text-sm font-medium text-brand-700 dark:text-brand-300 hover:underline">
           Try again
         </button>
       )}
@@ -128,8 +128,8 @@ export function StatCard({
   tone?: "blue" | "orange" | "green" | "purple";
 }) {
   const iconTone = {
-    blue: "bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300",
-    orange: "bg-accent-50 text-accent-600 dark:bg-accent-700/20 dark:text-accent-400",
+    blue: "bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300",
+    orange: "bg-accent-50 text-accent-700 dark:text-accent-400 dark:bg-accent-700/20 dark:text-accent-400",
     green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300",
     purple: "bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300",
   }[tone];

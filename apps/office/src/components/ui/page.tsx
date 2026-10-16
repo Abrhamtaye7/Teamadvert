@@ -59,10 +59,10 @@ export function SearchInput({ value, onSearch, placeholder = "Search…", classN
         onChange={(e) => setText(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-10 w-full rounded-lg border border-line bg-surface pl-9 pr-9 placeholder:text-ink-subtle focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+        className="h-10 max-md:h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-9 placeholder:text-ink-subtle focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
       />
       {text && (
-        <button type="button" aria-label="Clear search" onClick={() => setText("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-ink-subtle hover:text-ink">
+        <button type="button" aria-label="Clear search" onClick={() => setText("")} className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle hover:text-ink">
           <X className="size-4" />
         </button>
       )}
@@ -83,7 +83,7 @@ export function FilterTabs<T extends string>({ value, onChange, options }: { val
             aria-selected={value === o.value}
             onClick={() => onChange(o.value)}
             className={cn(
-              "h-8 whitespace-nowrap rounded-full px-3 text-sm font-medium transition-colors",
+              "h-8 max-md:h-11 whitespace-nowrap rounded-full px-3 max-md:px-4 text-sm font-medium transition-colors",
               value === o.value ? "bg-brand-600 text-white" : "bg-surface text-ink-muted ring-1 ring-line hover:text-ink",
             )}
           >

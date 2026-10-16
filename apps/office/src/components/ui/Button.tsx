@@ -8,18 +8,18 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
   primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-sm",
-  accent: "bg-accent-500 text-white hover:bg-accent-600 shadow-sm",
-  success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm",
+  accent: "bg-accent-500 text-brand-950 hover:bg-accent-400 shadow-sm",
+  success: "bg-emerald-700 text-white hover:bg-emerald-800 shadow-sm",
   danger: "bg-rose-600 text-white hover:bg-rose-700 shadow-sm",
   secondary: "bg-surface text-ink border border-line hover:bg-surface-muted",
   ghost: "text-ink-muted hover:bg-surface-muted hover:text-ink",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm gap-1.5",
-  md: "h-10 px-4 text-sm gap-2",
+  sm: "h-8 max-md:h-11 px-3 text-sm gap-1.5",
+  md: "h-10 max-md:h-11 px-4 text-sm gap-2",
   lg: "h-12 px-5 text-base gap-2",
-  icon: "h-10 w-10 justify-center",
+  icon: "size-10 max-md:size-11 justify-center",
 };
 
 const base =

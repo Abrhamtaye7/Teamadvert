@@ -81,17 +81,17 @@ export default function LeadsPage() {
                 </div>
                 <StatusBadge status={lead.status} />
               </div>
-              {lead.service && <p className="mt-2 text-sm font-medium text-brand-600">{lead.service}</p>}
+              {lead.service && <p className="mt-2 text-sm font-medium text-brand-700 dark:text-brand-300">{lead.service}</p>}
               <p className="mt-1 flex-1 whitespace-pre-wrap text-sm text-ink-muted">{lead.message}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
                 <a href={`tel:${lead.phone}`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand-600 px-3 text-sm font-medium text-white">
                   <Phone className="size-4" /> {lead.phone}
                 </a>
-                <a href={whatsapp(lead.phone)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-sm font-medium text-white">
+                <a href={whatsapp(lead.phone)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-700 px-3 text-sm font-medium text-white">
                   <MessageCircle className="size-4" /> WhatsApp
                 </a>
                 {lead.email && (
-                  <a href={`mailto:${lead.email}`} className="text-sm text-brand-600 hover:underline">
+                  <a href={`mailto:${lead.email}`} className="text-sm text-brand-700 dark:text-brand-300 hover:underline">
                     {lead.email}
                   </a>
                 )}
@@ -104,7 +104,7 @@ export default function LeadsPage() {
                   <option value="closed">Closed</option>
                 </Select>
                 {lead.customerId ? (
-                  <Link to={`/customers/${lead.customerId}`} className="text-sm font-medium text-brand-600 hover:underline">
+                  <Link to={`/customers/${lead.customerId}`} className="text-sm font-medium text-brand-700 dark:text-brand-300 hover:underline">
                     View customer
                   </Link>
                 ) : (

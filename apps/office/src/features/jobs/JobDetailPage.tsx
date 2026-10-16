@@ -37,7 +37,7 @@ function Stepper({ status }: { status: JobStatus }) {
             <span
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-                i < current ? "bg-brand-600 text-white" : i === current ? "bg-accent-500 text-white ring-4 ring-accent-500/20" : "bg-surface-muted text-ink-subtle",
+                i < current ? "bg-brand-600 text-white" : i === current ? "bg-accent-500 text-brand-950 ring-4 ring-accent-500/20" : "bg-surface-muted text-ink-subtle",
               )}
             >
               {i + 1}
@@ -201,7 +201,7 @@ export default function JobDetailPage() {
               <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${price ? Math.min(100, (paid / price) * 100) : 0}%` }} />
               </div>
-              <p className="mt-1.5 text-sm">Balance <span className="font-semibold text-accent-600 tabular-nums">{money(balance)}</span></p>
+              <p className="mt-1.5 text-sm">Balance <span className="font-semibold text-accent-700 dark:text-accent-400 tabular-nums">{money(balance)}</span></p>
             </div>
             {job.payments?.length ? (
               <ul className="mt-2 divide-y divide-line">
@@ -239,8 +239,8 @@ export default function JobDetailPage() {
             <DetailList
               className="sm:grid-cols-1"
               items={[
-                { label: "Customer", value: job.customer ? <Link className="text-brand-600 hover:underline" to={`/customers/${job.customer.id}`}>{job.customer.name}</Link> : "—" },
-                { label: "Proforma", value: job.proforma ? <Link className="text-brand-600 hover:underline" to={`/proformas/${job.proforma.id}`}>{job.proforma.number}</Link> : "Manual job" },
+                { label: "Customer", value: job.customer ? <Link className="text-brand-700 dark:text-brand-300 hover:underline" to={`/customers/${job.customer.id}`}>{job.customer.name}</Link> : "—" },
+                { label: "Proforma", value: job.proforma ? <Link className="text-brand-700 dark:text-brand-300 hover:underline" to={`/proformas/${job.proforma.id}`}>{job.proforma.number}</Link> : "Manual job" },
                 { label: "Job type", value: job.jobType ?? "—" },
                 { label: "Deadline", value: date(job.deadline) },
                 { label: "Agreed advance", value: job.advancePayment != null ? money(job.advancePayment) : "—" },

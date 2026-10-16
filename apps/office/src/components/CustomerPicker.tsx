@@ -77,7 +77,7 @@ export function CustomerPicker({ value, onChange }: { value: CustomerChoice; onC
                         {c.customerId} · {c.company ?? phones(c.phones)}
                       </p>
                     </div>
-                    {selected && <Check className="size-4 text-brand-600" />}
+                    {selected && <Check className="size-4 text-brand-700 dark:text-brand-300" />}
                   </button>
                 </li>
               );

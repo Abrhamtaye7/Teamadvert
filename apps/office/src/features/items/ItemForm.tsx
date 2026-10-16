@@ -40,7 +40,7 @@ function QuickAdd({ label, onAdd, pending }: { label: string; onAdd: (name: stri
   const [name, setName] = useState("");
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-600">
+      <button type="button" onClick={() => setOpen(true)} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-700 dark:text-brand-300">
         <Plus className="size-3" />
         New {label}
       </button>

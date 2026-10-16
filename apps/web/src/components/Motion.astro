@@ -11,6 +11,16 @@
 <script>
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Pause/play for the moving services strip
+  document.querySelectorAll<HTMLButtonElement>(".marquee-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const marquee = button.closest(".marquee");
+      const paused = marquee?.classList.toggle("is-paused") ?? false;
+      button.setAttribute("aria-pressed", String(paused));
+      button.setAttribute("aria-label", paused ? "Play the moving services strip" : "Pause the moving services strip");
+    });
+  });
+
   // Reveal on scroll
   const reveals = document.querySelectorAll<HTMLElement>(".reveal");
   if (reduce || !("IntersectionObserver" in window)) {

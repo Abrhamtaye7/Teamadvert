@@ -44,12 +44,12 @@ export function Field({
 }
 
 export function Input({ className, ref, ...props }: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }) {
-  return <input ref={ref} className={cn(control, "h-10", className)} {...props} />;
+  return <input ref={ref} className={cn(control, "h-10 max-md:h-11", className)} {...props} />;
 }
 
 export function Select({ className, ref, children, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { ref?: Ref<HTMLSelectElement> }) {
   return (
-    <select ref={ref} className={cn(control, "h-10 pr-8", className)} {...props}>
+    <select ref={ref} className={cn(control, "h-10 max-md:h-11 pr-8", className)} {...props}>
       {children}
     </select>
   );

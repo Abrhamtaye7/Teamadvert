@@ -21,6 +21,7 @@
   --color-accent-400: #fbaa4c;
   --color-accent-500: #f7931e;
   --color-accent-600: #e07a0c;
+  --color-accent-700: #a14d06;
 
   --font-sans: "Inter Variable", "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
 
@@ -119,8 +120,16 @@ html.js .reveal.is-visible {
 .marquee-track {
   animation: marquee 45s linear infinite;
 }
-.marquee:hover .marquee-track {
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track,
+.marquee.is-paused .marquee-track {
   animation-play-state: paused;
+}
+.marquee.is-paused .pause-icon {
+  display: none;
+}
+.marquee.is-paused .play-icon {
+  display: block;
 }
 @keyframes marquee {
   to {
@@ -149,14 +158,15 @@ html.js .reveal.is-visible {
 }
 
 /* Sticky "how it works" steps light up as they scroll past */
+/* Steps stay fully readable; the active one is lifted and outlined in brand orange */
 html.js .step {
-  opacity: 0.35;
-  transition: opacity 0.5s ease, transform 0.5s var(--ease-out-expo), border-color 0.5s ease;
+  transition: transform 0.5s var(--ease-out-expo), border-color 0.5s ease, background-color 0.5s ease, box-shadow 0.5s ease;
 }
 html.js .step.is-active {
-  opacity: 1;
   transform: translateX(6px);
   border-color: var(--color-accent-500);
+  background-color: var(--color-accent-50);
+  box-shadow: 0 18px 40px -24px rgb(247 147 30 / 0.6);
 }
 
 /* Header turns solid once the page scrolls */
@@ -186,5 +196,8 @@ html.js .step.is-active {
   }
   .zoom-media > * {
     transition: none;
+  }
+  .marquee-toggle {
+    display: none;
   }
 }

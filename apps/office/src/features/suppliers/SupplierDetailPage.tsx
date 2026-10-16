@@ -94,7 +94,7 @@ export default function SupplierDetailPage() {
             className="sm:grid-cols-1"
             items={[
               { label: "Contact", value: s.contactPerson ?? "—" },
-              { label: "Phone", value: s.phones?.length ? s.phones.map((p) => <a key={p} href={`tel:${p}`} className="mr-2 text-brand-600 hover:underline">{p}</a>) : phones(s.phones) },
+              { label: "Phone", value: s.phones?.length ? s.phones.map((p) => <a key={p} href={`tel:${p}`} className="mr-2 text-brand-700 dark:text-brand-300 hover:underline">{p}</a>) : phones(s.phones) },
               { label: "Email", value: s.email ?? "—" },
               { label: "Address", value: typeof s.address === "string" ? s.address : "—" },
               { label: "Added", value: date(s.createdAt) },
@@ -109,7 +109,7 @@ export default function SupplierDetailPage() {
                 {s.items.map((i) => (
                   <li key={i.itemId} className="flex items-center justify-between px-4 py-3 md:px-5">
                     <div>
-                      <Link to={`/items/${i.itemId}`} className="font-medium text-brand-600 hover:underline">{i.name}</Link>
+                      <Link to={`/items/${i.itemId}`} className="font-medium text-brand-700 dark:text-brand-300 hover:underline">{i.name}</Link>
                       <p className="text-xs text-ink-subtle">Updated {date(i.updatedAt)}</p>
                     </div>
                     <span className="font-semibold tabular-nums">{money(i.price)}</span>

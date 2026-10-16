@@ -21,7 +21,7 @@ function JobQueue({ title, description, status, empty }: { title: string; descri
       <CardHeader
         title={<span className="flex items-center gap-2">{title} {data && <span className="rounded-full bg-surface-muted px-2 text-xs text-ink-muted">{data.total}</span>}</span>}
         description={description}
-        action={<Link to={`/jobs?status=${status}`} className="text-sm font-medium text-brand-600 hover:underline">View all</Link>}
+        action={<Link to={`/jobs?status=${status}`} className="text-sm font-medium text-brand-700 dark:text-brand-300 hover:underline">View all</Link>}
       />
       {isLoading ? (
         <div className="flex justify-center py-6"><Spinner /></div>
@@ -79,9 +79,9 @@ export default function DashboardPage() {
         <p className="relative mt-1 text-sm text-brand-100">{new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Addis_Ababa", weekday: "long", day: "numeric", month: "long" }).format(new Date())} · {role}</p>
         <div className="relative mt-4 flex flex-wrap gap-2">
           {can("proforma.create") && <ButtonLink to="/proformas" variant="accent" size="sm" icon={Plus}>Proforma</ButtonLink>}
-          {can("job.create") && <ButtonLink to="/jobs" size="sm" icon={Plus} className="bg-white/15 hover:bg-white/25">Job order</ButtonLink>}
-          {can("customer.edit") && <ButtonLink to="/customers" size="sm" icon={Users} className="bg-white/15 hover:bg-white/25">Customers</ButtonLink>}
-          {can("payment.record") && <ButtonLink to="/finance" size="sm" icon={Wallet} className="bg-white/15 hover:bg-white/25">Finance</ButtonLink>}
+          {can("job.create") && <ButtonLink to="/jobs" size="sm" icon={Plus} className="bg-brand-900/70 hover:bg-brand-900">Job order</ButtonLink>}
+          {can("customer.edit") && <ButtonLink to="/customers" size="sm" icon={Users} className="bg-brand-900/70 hover:bg-brand-900">Customers</ButtonLink>}
+          {can("payment.record") && <ButtonLink to="/finance" size="sm" icon={Wallet} className="bg-brand-900/70 hover:bg-brand-900">Finance</ButtonLink>}
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             <CardHeader
               title="Draft proformas"
               description={role === "Admin" ? "Waiting for your approval" : "Not yet approved"}
-              action={<Link to="/proformas?status=draft" className="text-sm font-medium text-brand-600 hover:underline">View all</Link>}
+              action={<Link to="/proformas?status=draft" className="text-sm font-medium text-brand-700 dark:text-brand-300 hover:underline">View all</Link>}
             />
             {drafts.data?.data.length ? (
               <ul className="divide-y divide-line">{drafts.data.data.map((p) => <ProformaRow key={p.id} p={p} />)}</ul>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
       </div>
 
       <Card>
-        <CardHeader title="Last 6 months" description="Collected payments and outstanding balances" action={<Link to="/reports" className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline">Reports <ArrowRight className="size-3.5" /></Link>} />
+        <CardHeader title="Last 6 months" description="Collected payments and outstanding balances" action={<Link to="/reports" className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 dark:text-brand-300 hover:underline">Reports <ArrowRight className="size-3.5" /></Link>} />
         <div className="p-4 md:p-5">{overview.data ? <MonthlyChart data={overview.data.chart} /> : <div className="flex justify-center py-10"><Spinner /></div>}</div>
       </Card>
     </div>
