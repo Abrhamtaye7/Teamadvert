@@ -1,13 +1,13 @@
 ---
 import { Image } from "astro:assets";
-import { ArrowRight, CheckCircle2, MessageCircle, Phone } from "@lucide/astro";
+import { ArrowRight, CheckCircle2, MessageCircle, Phone, Send } from "@lucide/astro";
 import logo from "../assets/teamlogo.png";
 import Base from "../layouts/Base.astro";
-import ServiceIcon from "../components/ServiceIcon.astro";
-import { SITE, ready } from "../content/site";
+import ServicePicture from "../components/ServicePicture.astro";
+import { SITE, telegramHref, telHref, whatsappHref } from "../content/site";
 
-const phone = ready(SITE.contact.phone);
-const whatsapp = ready(SITE.contact.whatsapp);
+const [mainPhone] = SITE.contact.phones;
+const tones = ["blue", "orange", "navy"] as const;
 ---
 
 <Base title={SITE.name}>
@@ -15,31 +15,22 @@ const whatsapp = ready(SITE.contact.whatsapp);
   <section class="relative overflow-hidden bg-brand-700 text-white">
     <div class="absolute -right-32 -top-32 size-[28rem] rounded-full bg-accent-500/25 blur-3xl" aria-hidden="true"></div>
     <div class="absolute -bottom-40 -left-24 size-[26rem] rounded-full bg-brand-400/30 blur-3xl" aria-hidden="true"></div>
-    <div class="container-site relative grid items-center gap-10 py-16 md:grid-cols-[1.2fr_1fr] md:py-24">
+    <div class="container-site relative grid items-center gap-10 py-14 md:grid-cols-[1.2fr_1fr] md:py-24">
       <div>
         <p class="text-sm font-semibold uppercase tracking-widest text-accent-400">{SITE.tagline}</p>
         <h1 class="mt-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Make your business impossible to miss.</h1>
-        <p class="mt-5 max-w-xl text-lg text-brand-100">
-          Signs, banners, vehicle branding and print — designed, produced and installed by one team, on time.
-        </p>
+        <p class="mt-5 max-w-xl text-lg text-brand-100">Signs, banners, vehicle branding and print — designed, produced and installed by one team, on time.</p>
         <div class="mt-8 flex flex-wrap gap-3">
           <a href="/contact/#quote" class="inline-flex h-12 items-center gap-2 rounded-lg bg-accent-500 px-6 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600">
             Get a free quote <ArrowRight class="size-4" />
           </a>
-          {
-            phone && (
-              <a href={`tel:${phone.replace(/\s/g, "")}`} class="inline-flex h-12 items-center gap-2 rounded-lg bg-white/10 px-6 font-semibold text-white ring-1 ring-white/25 hover:bg-white/20">
-                <Phone class="size-4" /> {phone}
-              </a>
-            )
-          }
-          {
-            whatsapp && (
-              <a href={`https://wa.me/${whatsapp}`} rel="noopener" target="_blank" class="inline-flex h-12 items-center gap-2 rounded-lg bg-emerald-500 px-6 font-semibold text-white hover:bg-emerald-600">
-                <MessageCircle class="size-4" /> WhatsApp
-              </a>
-            )
-          }
+          <a href={telHref(mainPhone)} class="inline-flex h-12 items-center gap-2 rounded-lg bg-white/10 px-5 font-semibold text-white ring-1 ring-white/25 hover:bg-white/20">
+            <Phone class="size-4" /> {mainPhone}
+          </a>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-3 text-sm">
+          <a href={whatsappHref()} rel="noopener" target="_blank" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1.5 font-medium hover:bg-emerald-500"><MessageCircle class="size-4" /> WhatsApp</a>
+          <a href={telegramHref()} rel="noopener" target="_blank" class="inline-flex items-center gap-1.5 rounded-full bg-sky-500/90 px-3 py-1.5 font-medium hover:bg-sky-500"><Send class="size-4" /> Telegram</a>
         </div>
       </div>
       <div class="hidden justify-center md:flex">
@@ -53,11 +44,11 @@ const whatsapp = ready(SITE.contact.whatsapp);
   {
     SITE.stats.length > 0 && (
       <section class="border-b border-slate-200 bg-white">
-        <dl class="container-site grid grid-cols-2 gap-6 py-10 text-center md:grid-cols-4">
+        <dl class="container-site grid grid-cols-3 gap-4 py-8 text-center md:py-10">
           {SITE.stats.map((s) => (
             <div>
-              <dt class="text-sm text-slate-500">{s.label}</dt>
-              <dd class="mt-1 text-3xl font-bold text-brand-700">{s.value}</dd>
+              <dd class="text-2xl font-bold text-brand-700 sm:text-4xl">{s.value}</dd>
+              <dt class="mt-1 text-xs text-slate-500 sm:text-sm">{s.label}</dt>
             </div>
           ))}
         </dl>
@@ -68,19 +59,23 @@ const whatsapp = ready(SITE.contact.whatsapp);
   <!-- Services -->
   <section class="bg-slate-50 py-16 md:py-24" aria-labelledby="services-title">
     <div class="container-site">
-      <div class="max-w-2xl">
-        <h2 id="services-title" class="text-3xl font-bold tracking-tight">What we do</h2>
-        <p class="mt-3 text-slate-600">From a single banner to a full brand rollout across your branches and fleet.</p>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div class="max-w-2xl">
+          <h2 id="services-title" class="text-3xl font-bold tracking-tight">What we do</h2>
+          <p class="mt-3 text-slate-600">From a single banner to a full brand rollout across your branches and fleet.</p>
+        </div>
+        <a href="/services/" class="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline">All services <ArrowRight class="size-4" /></a>
       </div>
       <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {
-          SITE.services.map((s) => (
-            <a href={`/services/#${s.slug}`} class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md">
-              <span class="inline-flex rounded-xl bg-brand-50 p-3 text-brand-600 transition group-hover:bg-brand-600 group-hover:text-white">
-                <ServiceIcon name={s.icon} class="size-6" />
-              </span>
-              <h3 class="mt-4 text-lg font-semibold">{s.title}</h3>
-              <p class="mt-2 text-sm text-slate-600">{s.summary}</p>
+          SITE.services.map((s, i) => (
+            <a href={`/services/#${s.slug}`} class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              <ServicePicture photoKey={s.slug} icon={s.icon} alt={s.title} tone={tones[i % 3]} />
+              <div class="p-5">
+                <h3 class="text-lg font-semibold group-hover:text-brand-700">{s.title}</h3>
+                <p class="mt-1.5 text-sm text-slate-600">{s.summary}</p>
+                <p class="mt-3 text-xs font-medium text-slate-500">{s.items.length} options · {s.items.slice(0, 2).map((x) => x.title).join(", ")}…</p>
+              </div>
             </a>
           ))
         }
@@ -92,10 +87,10 @@ const whatsapp = ready(SITE.contact.whatsapp);
   <section class="py-16 md:py-24" aria-labelledby="process-title">
     <div class="container-site">
       <h2 id="process-title" class="text-3xl font-bold tracking-tight">How it works</h2>
-      <ol class="mt-10 grid gap-6 md:grid-cols-4">
+      <ol class="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
         {
           SITE.process.map((step, i) => (
-            <li class="relative rounded-2xl border border-slate-200 p-6">
+            <li class="rounded-2xl border border-slate-200 p-6">
               <span class="flex size-10 items-center justify-center rounded-full bg-accent-500 font-bold text-white">{i + 1}</span>
               <h3 class="mt-4 font-semibold">{step.title}</h3>
               <p class="mt-2 text-sm text-slate-600">{step.text}</p>
@@ -111,7 +106,7 @@ const whatsapp = ready(SITE.contact.whatsapp);
     <div class="container-site grid gap-10 md:grid-cols-2 md:items-center">
       <div>
         <h2 class="text-3xl font-bold tracking-tight">One partner from design to installation</h2>
-        <p class="mt-4 text-slate-300">You deal with one team that designs, prints and installs — so colours match, deadlines hold and you always know who to call.</p>
+        <p class="mt-4 text-slate-300">8+ years and more than 42,000 jobs: you deal with one team that designs, prints and installs — so colours match, deadlines hold and you always know who to call.</p>
       </div>
       <ul class="grid gap-3 sm:grid-cols-2">
         {
@@ -133,9 +128,7 @@ const whatsapp = ready(SITE.contact.whatsapp);
           <h2 class="text-2xl font-bold md:text-3xl">Have a project in mind?</h2>
           <p class="mt-2 text-brand-100">Tell us the size, quantity and deadline — we'll send a proforma.</p>
         </div>
-        <a href="/contact/#quote" class="inline-flex h-12 shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-6 font-semibold text-white hover:bg-accent-600">
-          Request a quote <ArrowRight class="size-4" />
-        </a>
+        <a href="/contact/#quote" class="inline-flex h-12 shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-6 font-semibold text-white hover:bg-accent-600">Request a quote <ArrowRight class="size-4" /></a>
       </div>
     </div>
   </section>

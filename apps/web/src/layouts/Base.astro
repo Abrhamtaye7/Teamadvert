@@ -3,7 +3,7 @@ import { getImage } from "astro:assets";
 import logo from "../assets/teamlogo.png";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { SITE, ready } from "../content/site";
+import { SITE } from "../content/site";
 import "../styles/global.css";
 
 interface Props {
@@ -27,11 +27,13 @@ const jsonLd = {
   description: SITE.description,
   logo: new URL(ogImage.src, SITE.url).href,
   image: new URL(ogImage.src, SITE.url).href,
-  telephone: ready(c.phone),
-  email: ready(c.email),
+  telephone: c.phones[0],
+  email: c.email,
+  hasMap: c.mapUrl || undefined,
+  contactPoint: c.phones.map((telephone) => ({ "@type": "ContactPoint", telephone, contactType: "customer service", areaServed: "ET" })),
   address: {
     "@type": "PostalAddress",
-    streetAddress: ready(c.address),
+    streetAddress: c.address,
     addressLocality: c.city,
     addressCountry: "ET",
   },

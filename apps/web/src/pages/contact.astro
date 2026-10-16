@@ -1,63 +1,58 @@
 ---
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "@lucide/astro";
+import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "@lucide/astro";
 import Base from "../layouts/Base.astro";
 import QuoteForm from "../components/QuoteForm.astro";
-import { SITE, ready } from "../content/site";
+import { SITE, fullAddress, ready, telegramHref, telHref, whatsappHref } from "../content/site";
 
 const c = SITE.contact;
-const phone = ready(c.phone);
-const whatsapp = ready(c.whatsapp);
-const email = ready(c.email);
 const hours = ready(c.hours);
-const address = [ready(c.address), c.city, c.country].filter(Boolean).join(", ");
+const card = "flex items-center gap-4 rounded-2xl border border-slate-200 p-5";
 ---
 
-<Base title="Contact & quotes" description={`Contact ${SITE.name} in ${c.city} or request a free quote for signage, banners, branding and printing.`}>
+<Base title="Contact & quotes" description={`Contact ${SITE.name} on ${c.phones[0]} or visit us at ${fullAddress()}. Request a free quote for signage, banners, branding and printing.`}>
   <section class="bg-brand-700 py-14 text-white md:py-20">
     <div class="container-site">
       <h1 class="text-4xl font-bold tracking-tight">Let's talk about your project</h1>
-      <p class="mt-3 max-w-2xl text-lg text-brand-100">Call, WhatsApp or send the form — we'll get back to you with a proforma.</p>
+      <p class="mt-3 max-w-2xl text-lg text-brand-100">Call, WhatsApp, Telegram or send the form — we'll get back to you with a proforma.</p>
     </div>
   </section>
 
   <section class="py-14 md:py-20">
     <div class="container-site grid gap-10 lg:grid-cols-[1fr_1.4fr]">
       <div class="space-y-4">
-        {
-          phone && (
-            <a href={`tel:${phone.replace(/\s/g, "")}`} class="flex items-center gap-4 rounded-2xl border border-slate-200 p-5 hover:border-brand-300">
-              <span class="rounded-xl bg-brand-50 p-3 text-brand-600"><Phone class="size-6" /></span>
-              <span><span class="block text-sm text-slate-500">Call us</span><span class="font-semibold">{phone}</span></span>
-            </a>
-          )
-        }
-        {
-          whatsapp && (
-            <a href={`https://wa.me/${whatsapp}`} rel="noopener" target="_blank" class="flex items-center gap-4 rounded-2xl border border-slate-200 p-5 hover:border-emerald-300">
-              <span class="rounded-xl bg-emerald-50 p-3 text-emerald-600"><MessageCircle class="size-6" /></span>
-              <span><span class="block text-sm text-slate-500">WhatsApp</span><span class="font-semibold">Chat with us</span></span>
-            </a>
-          )
-        }
-        {
-          email && (
-            <a href={`mailto:${email}`} class="flex items-center gap-4 rounded-2xl border border-slate-200 p-5 hover:border-brand-300">
-              <span class="rounded-xl bg-brand-50 p-3 text-brand-600"><Mail class="size-6" /></span>
-              <span class="min-w-0"><span class="block text-sm text-slate-500">Email</span><span class="block break-all font-semibold">{email}</span></span>
-            </a>
-          )
-        }
-        <div class="flex items-center gap-4 rounded-2xl border border-slate-200 p-5">
+        <div class={card}>
+          <span class="rounded-xl bg-brand-50 p-3 text-brand-600"><Phone class="size-6" /></span>
+          <span>
+            <span class="block text-sm text-slate-500">Call us</span>
+            {c.phones.map((p) => <a href={telHref(p)} class="block font-semibold hover:text-brand-700">{p}</a>)}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <a href={whatsappHref()} rel="noopener" target="_blank" class={`${card} hover:border-emerald-300`}>
+            <span class="rounded-xl bg-emerald-50 p-3 text-emerald-600"><MessageCircle class="size-6" /></span>
+            <span class="font-semibold">WhatsApp</span>
+          </a>
+          <a href={telegramHref()} rel="noopener" target="_blank" class={`${card} hover:border-sky-300`}>
+            <span class="rounded-xl bg-sky-50 p-3 text-sky-600"><Send class="size-6" /></span>
+            <span class="font-semibold">Telegram</span>
+          </a>
+        </div>
+        <a href={`mailto:${c.email}`} class={`${card} hover:border-brand-300`}>
+          <span class="rounded-xl bg-brand-50 p-3 text-brand-600"><Mail class="size-6" /></span>
+          <span class="min-w-0"><span class="block text-sm text-slate-500">Email</span><span class="block break-all font-semibold">{c.email}</span></span>
+        </a>
+        <div class={card}>
           <span class="rounded-xl bg-accent-50 p-3 text-accent-600"><MapPin class="size-6" /></span>
           <span>
             <span class="block text-sm text-slate-500">Visit us</span>
-            <span class="font-semibold">{address}</span>
-            {c.mapUrl && <a href={c.mapUrl} rel="noopener" target="_blank" class="mt-1 block text-sm text-brand-600 hover:underline">Open in Google Maps</a>}
+            <span class="font-semibold">{fullAddress()}</span>
+            <span class="block text-sm text-slate-600" lang="am">{c.cityLocal}</span>
+            {c.mapUrl && <a href={c.mapUrl} rel="noopener" target="_blank" class="mt-1 inline-block text-sm font-medium text-brand-600 hover:underline">Open in Google Maps →</a>}
           </span>
         </div>
         {
           hours && (
-            <div class="flex items-center gap-4 rounded-2xl border border-slate-200 p-5">
+            <div class={card}>
               <span class="rounded-xl bg-slate-100 p-3 text-slate-600"><Clock class="size-6" /></span>
               <span><span class="block text-sm text-slate-500">Opening hours</span><span class="font-semibold">{hours}</span></span>
             </div>
@@ -67,7 +62,7 @@ const address = [ready(c.address), c.city, c.country].filter(Boolean).join(", ")
 
       <div id="quote" class="scroll-mt-24 rounded-2xl border border-slate-200 p-6 shadow-sm md:p-8">
         <h2 class="text-2xl font-semibold">Request a quote</h2>
-        <p class="mt-1 mb-6 text-sm text-slate-600">Tell us what you need. The more detail (sizes, quantities, deadline), the faster we can price it.</p>
+        <p class="mb-6 mt-1 text-sm text-slate-600">Tell us what you need. The more detail (sizes, quantities, deadline), the faster we can price it.</p>
         <QuoteForm />
       </div>
     </div>

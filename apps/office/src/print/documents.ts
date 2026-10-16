@@ -18,7 +18,8 @@ function header(title: string, number: string, when: string) {
         <img src="${assetUrl(logoUrl)}" alt="" style="width:58px;height:58px" />
         <div>
           <h2 style="font-size:20px;letter-spacing:.04em" class="brand">${COMPANY.name}</h2>
-          <div class="muted">${COMPANY.city}</div>
+          <div class="muted">${COMPANY.address}</div>
+          <div class="muted">Tel ${COMPANY.phones.join(" / ")} · ${COMPANY.email} · ${COMPANY.website}</div>
         </div>
       </div>
       <div style="text-align:right">

@@ -1,11 +1,8 @@
 ---
 import { Clock, Mail, MapPin, Phone } from "@lucide/astro";
-import { SITE, ready } from "../content/site";
+import { SITE, fullAddress, ready, telHref } from "../content/site";
 
 const c = SITE.contact;
-const phone = ready(c.phone);
-const email = ready(c.email);
-const address = ready(c.address);
 const hours = ready(c.hours);
 const socials = Object.entries(SITE.social).filter(([, url]) => url);
 const year = new Date().getFullYear();
@@ -18,10 +15,10 @@ const year = new Date().getFullYear();
       <p class="mt-2 max-w-sm text-sm">{SITE.description}</p>
       {
         socials.length > 0 && (
-          <ul class="mt-4 flex flex-wrap gap-3 text-sm">
+          <ul class="mt-4 flex flex-wrap gap-2 text-sm">
             {socials.map(([name, url]) => (
               <li>
-                <a href={url} rel="noopener" target="_blank" class="capitalize hover:text-white">
+                <a href={url} rel="noopener" target="_blank" class="inline-block rounded-full bg-white/10 px-3 py-1 capitalize hover:bg-white/20 hover:text-white">
                   {name}
                 </a>
               </li>
@@ -33,9 +30,9 @@ const year = new Date().getFullYear();
     <div>
       <p class="text-sm font-semibold text-white">Contact</p>
       <ul class="mt-3 space-y-2 text-sm">
-        {phone && <li class="flex gap-2"><Phone class="mt-0.5 size-4 shrink-0" /><a href={`tel:${phone.replace(/\s/g, "")}`} class="hover:text-white">{phone}</a></li>}
-        {email && <li class="flex gap-2"><Mail class="mt-0.5 size-4 shrink-0" /><a href={`mailto:${email}`} class="hover:text-white">{email}</a></li>}
-        <li class="flex gap-2"><MapPin class="mt-0.5 size-4 shrink-0" />{[address, c.city, c.country].filter(Boolean).join(", ")}</li>
+        {c.phones.map((p) => <li class="flex gap-2"><Phone class="mt-0.5 size-4 shrink-0" /><a href={telHref(p)} class="hover:text-white">{p}</a></li>)}
+        <li class="flex gap-2"><Mail class="mt-0.5 size-4 shrink-0" /><a href={`mailto:${c.email}`} class="hover:text-white">{c.email}</a></li>
+        <li class="flex gap-2"><MapPin class="mt-0.5 size-4 shrink-0" /><a href={c.mapUrl || "/contact/"} rel="noopener" target={c.mapUrl ? "_blank" : undefined} class="hover:text-white">{fullAddress()}</a></li>
         {hours && <li class="flex gap-2"><Clock class="mt-0.5 size-4 shrink-0" />{hours}</li>}
       </ul>
     </div>
