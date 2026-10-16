@@ -1,40 +1,142 @@
 ---
-// Placeholder until the marketing site is built in Phase 5.
-const title = "TEAM ADVERT PLC — Advertising & Printing";
-const description = "TEAM ADVERT PLC — advertising, branding and printing services.";
+import { Image } from "astro:assets";
+import { ArrowRight, CheckCircle2, MessageCircle, Phone } from "@lucide/astro";
+import logo from "../assets/teamlogo.png";
+import Base from "../layouts/Base.astro";
+import ServiceIcon from "../components/ServiceIcon.astro";
+import { SITE, ready } from "../content/site";
+
+const phone = ready(SITE.contact.phone);
+const whatsapp = ready(SITE.contact.whatsapp);
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <link rel="icon" type="image/png" href="/teamlogo.png" />
-    <link rel="canonical" href={Astro.url.href} />
-  </head>
-  <body>
-    <main>
-      <img src="/teamlogo.png" alt="TEAM ADVERT PLC logo" width="160" />
-      <h1>TEAM ADVERT PLC</h1>
-      <p>Our new website is coming soon.</p>
-    </main>
-  </body>
-</html>
+<Base title={SITE.name}>
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-brand-700 text-white">
+    <div class="absolute -right-32 -top-32 size-[28rem] rounded-full bg-accent-500/25 blur-3xl" aria-hidden="true"></div>
+    <div class="absolute -bottom-40 -left-24 size-[26rem] rounded-full bg-brand-400/30 blur-3xl" aria-hidden="true"></div>
+    <div class="container-site relative grid items-center gap-10 py-16 md:grid-cols-[1.2fr_1fr] md:py-24">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-widest text-accent-400">{SITE.tagline}</p>
+        <h1 class="mt-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Make your business impossible to miss.</h1>
+        <p class="mt-5 max-w-xl text-lg text-brand-100">
+          Signs, banners, vehicle branding and print — designed, produced and installed by one team, on time.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/contact/#quote" class="inline-flex h-12 items-center gap-2 rounded-lg bg-accent-500 px-6 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600">
+            Get a free quote <ArrowRight class="size-4" />
+          </a>
+          {
+            phone && (
+              <a href={`tel:${phone.replace(/\s/g, "")}`} class="inline-flex h-12 items-center gap-2 rounded-lg bg-white/10 px-6 font-semibold text-white ring-1 ring-white/25 hover:bg-white/20">
+                <Phone class="size-4" /> {phone}
+              </a>
+            )
+          }
+          {
+            whatsapp && (
+              <a href={`https://wa.me/${whatsapp}`} rel="noopener" target="_blank" class="inline-flex h-12 items-center gap-2 rounded-lg bg-emerald-500 px-6 font-semibold text-white hover:bg-emerald-600">
+                <MessageCircle class="size-4" /> WhatsApp
+              </a>
+            )
+          }
+        </div>
+      </div>
+      <div class="hidden justify-center md:flex">
+        <div class="rounded-full bg-white p-6 shadow-2xl">
+          <Image src={logo} alt={`${SITE.name} logo`} width={260} height={260} class="size-64" loading="eager" />
+        </div>
+      </div>
+    </div>
+  </section>
 
-<style>
-  body {
-    margin: 0;
-    font-family: system-ui, sans-serif;
-    background: #fff;
-    color: #111;
+  {
+    SITE.stats.length > 0 && (
+      <section class="border-b border-slate-200 bg-white">
+        <dl class="container-site grid grid-cols-2 gap-6 py-10 text-center md:grid-cols-4">
+          {SITE.stats.map((s) => (
+            <div>
+              <dt class="text-sm text-slate-500">{s.label}</dt>
+              <dd class="mt-1 text-3xl font-bold text-brand-700">{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )
   }
-  main {
-    min-height: 100vh;
-    display: grid;
-    place-content: center;
-    text-align: center;
-    padding: 1rem;
-  }
-</style>
+
+  <!-- Services -->
+  <section class="bg-slate-50 py-16 md:py-24" aria-labelledby="services-title">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <h2 id="services-title" class="text-3xl font-bold tracking-tight">What we do</h2>
+        <p class="mt-3 text-slate-600">From a single banner to a full brand rollout across your branches and fleet.</p>
+      </div>
+      <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          SITE.services.map((s) => (
+            <a href={`/services/#${s.slug}`} class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md">
+              <span class="inline-flex rounded-xl bg-brand-50 p-3 text-brand-600 transition group-hover:bg-brand-600 group-hover:text-white">
+                <ServiceIcon name={s.icon} class="size-6" />
+              </span>
+              <h3 class="mt-4 text-lg font-semibold">{s.title}</h3>
+              <p class="mt-2 text-sm text-slate-600">{s.summary}</p>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <section class="py-16 md:py-24" aria-labelledby="process-title">
+    <div class="container-site">
+      <h2 id="process-title" class="text-3xl font-bold tracking-tight">How it works</h2>
+      <ol class="mt-10 grid gap-6 md:grid-cols-4">
+        {
+          SITE.process.map((step, i) => (
+            <li class="relative rounded-2xl border border-slate-200 p-6">
+              <span class="flex size-10 items-center justify-center rounded-full bg-accent-500 font-bold text-white">{i + 1}</span>
+              <h3 class="mt-4 font-semibold">{step.title}</h3>
+              <p class="mt-2 text-sm text-slate-600">{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Why us -->
+  <section class="bg-brand-950 py-16 text-white md:py-20">
+    <div class="container-site grid gap-10 md:grid-cols-2 md:items-center">
+      <div>
+        <h2 class="text-3xl font-bold tracking-tight">One partner from design to installation</h2>
+        <p class="mt-4 text-slate-300">You deal with one team that designs, prints and installs — so colours match, deadlines hold and you always know who to call.</p>
+      </div>
+      <ul class="grid gap-3 sm:grid-cols-2">
+        {
+          ["In-house designers", "Clear proformas with VAT", "Quality materials", "Installation included", "On-time delivery", "Support after the job"].map((point) => (
+            <li class="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-3 text-sm">
+              <CheckCircle2 class="size-5 shrink-0 text-accent-400" /> {point}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 md:py-20">
+    <div class="container-site">
+      <div class="flex flex-col items-start gap-6 rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-8 text-white md:flex-row md:items-center md:justify-between md:p-12">
+        <div>
+          <h2 class="text-2xl font-bold md:text-3xl">Have a project in mind?</h2>
+          <p class="mt-2 text-brand-100">Tell us the size, quantity and deadline — we'll send a proforma.</p>
+        </div>
+        <a href="/contact/#quote" class="inline-flex h-12 shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-6 font-semibold text-white hover:bg-accent-600">
+          Request a quote <ArrowRight class="size-4" />
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>

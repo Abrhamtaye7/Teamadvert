@@ -1,0 +1,52 @@
+---
+import { Image } from "astro:assets";
+import { Menu, X } from "@lucide/astro";
+import logo from "../assets/teamlogo.png";
+import { SITE } from "../content/site";
+
+const links = [
+  { href: "/services/", label: "Services" },
+  { href: "/about/", label: "About" },
+  { href: "/contact/", label: "Contact" },
+];
+const path = Astro.url.pathname;
+const active = (href: string) => path.startsWith(href);
+---
+
+<header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+  <div class="container-site flex h-16 items-center gap-6">
+    <a href="/" class="flex items-center gap-2.5" aria-label={`${SITE.name} home`}>
+      <Image src={logo} alt="" width={40} height={40} class="size-10" loading="eager" />
+      <span class="text-sm font-bold tracking-wide text-brand-700">TEAM ADVERT</span>
+    </a>
+
+    <nav class="ml-auto hidden items-center gap-1 md:flex" aria-label="Main">
+      {
+        links.map((l) => (
+          <a href={l.href} class:list={["rounded-lg px-3 py-2 text-sm font-medium", active(l.href) ? "text-brand-700" : "text-slate-600 hover:text-slate-900"]} aria-current={active(l.href) ? "page" : undefined}>
+            {l.label}
+          </a>
+        ))
+      }
+      <a href="/contact/#quote" class="ml-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-600">Get a quote</a>
+    </nav>
+
+    <!-- Phone menu: <details> works without JavaScript -->
+    <details class="group ml-auto md:hidden">
+      <summary class="flex size-10 cursor-pointer list-none items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 [&::-webkit-details-marker]:hidden" aria-label="Menu">
+        <Menu class="size-6 group-open:hidden" />
+        <X class="hidden size-6 group-open:block" />
+      </summary>
+      <nav class="absolute inset-x-0 top-16 border-b border-slate-200 bg-white px-4 pb-4 shadow-lg" aria-label="Main">
+        {
+          links.map((l) => (
+            <a href={l.href} class:list={["block rounded-lg px-3 py-3 text-base font-medium", active(l.href) ? "bg-brand-50 text-brand-700" : "text-slate-700"]}>
+              {l.label}
+            </a>
+          ))
+        }
+        <a href="/contact/#quote" class="mt-2 block rounded-lg bg-accent-500 px-3 py-3 text-center text-base font-semibold text-white">Get a quote</a>
+      </nav>
+    </details>
+  </div>
+</header>

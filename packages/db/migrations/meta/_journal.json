@@ -15,6 +15,13 @@
       "when": 1792155723658,
       "tag": "0001_flat_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792160921850,
+      "tag": "0002_oval_johnny_blaze",
+      "breakpoints": true
     }
   ]
 }

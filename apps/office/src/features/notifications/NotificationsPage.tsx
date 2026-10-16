@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Bell, BadgeCheck, CheckCheck, CircleDollarSign, FileCheck2, Hammer, type LucideIcon } from "lucide-react";
+import { Bell, BadgeCheck, CheckCheck, CircleDollarSign, FileCheck2, Hammer, Inbox, type LucideIcon } from "lucide-react";
 import { useNotifications } from "../../app/AppShell";
 import { Button } from "../../components/ui/Button";
 import { Card, EmptyState, ErrorState, PageLoader } from "../../components/ui/display";
@@ -16,6 +16,7 @@ const ICONS: Record<string, LucideIcon> = {
   JobCompleted: Hammer,
   PaymentPending: CircleDollarSign,
   PaymentVerified: CheckCheck,
+  CustomerAlert: Inbox,
 };
 
 /** Where a notification should take you. */
@@ -23,6 +24,7 @@ function target(n: AppNotification) {
   const d = n.data ?? {};
   if (typeof d.jobId === "number") return `/jobs/${d.jobId}`;
   if (typeof d.proformaId === "number") return `/proformas/${d.proformaId}`;
+  if (typeof d.leadId === "number") return "/leads";
   return null;
 }
 

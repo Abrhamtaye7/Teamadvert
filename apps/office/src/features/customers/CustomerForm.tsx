@@ -44,7 +44,7 @@ function toPayload(v: FormValues): CustomerPayload {
   };
 }
 
-function defaults(c?: Customer): FormValues {
+function defaults(c?: Customer, initial?: Partial<FormValues>): FormValues {
   return {
     name: c?.name ?? "",
     company: c?.company ?? "",
@@ -58,13 +58,14 @@ function defaults(c?: Customer): FormValues {
     addressHouse: c?.address?.house ?? "",
     creditLimit: c?.creditLimit != null ? String(c.creditLimit) : "",
     standing: c?.standing ?? "Good",
+    ...initial,
   };
 }
 
 type SaveMutation = ReturnType<typeof useCreateCustomer>;
 
-function Form({ customer, save, onDone }: { customer?: Customer; save: SaveMutation; onDone: (c: Customer) => void }) {
-  const { register, handleSubmit, formState } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: defaults(customer) });
+function Form({ customer, initial, save, onDone }: { customer?: Customer; initial?: Partial<FormValues>; save: SaveMutation; onDone: (c: Customer) => void }) {
+  const { register, handleSubmit, formState } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: defaults(customer, initial) });
   const e = formState.errors;
 
   const submit = handleSubmit((values) =>
@@ -122,7 +123,20 @@ function Form({ customer, save, onDone }: { customer?: Customer; save: SaveMutat
   );
 }
 
-export function CustomerFormDialog({ open, onClose, customer, onSaved }: { open: boolean; onClose: () => void; customer?: Customer; onSaved?: (c: Customer) => void }) {
+export function CustomerFormDialog({
+  open,
+  onClose,
+  customer,
+  initial,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  customer?: Customer;
+  /** Pre-fill for a new customer (e.g. from a website quote request) */
+  initial?: Partial<FormValues>;
+  onSaved?: (c: Customer) => void;
+}) {
   const create = useCreateCustomer();
   const update = useUpdateCustomer(customer?.id ?? 0);
   const save = (customer ? update : create) as SaveMutation;
@@ -145,6 +159,7 @@ export function CustomerFormDialog({ open, onClose, customer, onSaved }: { open:
     >
       <Form
         customer={customer}
+        initial={initial}
         save={save}
         onDone={(c) => {
           onSaved?.(c);

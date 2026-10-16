@@ -1,0 +1,79 @@
+---
+import { SITE, ready } from "../content/site";
+
+const phone = ready(SITE.contact.phone);
+---
+
+<form id="quote-form" class="space-y-4" novalidate>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <label class="block">
+      <span class="text-sm font-medium">Your name <span class="text-rose-600">*</span></span>
+      <input name="name" required minlength="2" maxlength="120" autocomplete="name" class="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
+    </label>
+    <label class="block">
+      <span class="text-sm font-medium">Phone <span class="text-rose-600">*</span></span>
+      <input name="phone" type="tel" required autocomplete="tel" placeholder="09…" class="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
+    </label>
+    <label class="block">
+      <span class="text-sm font-medium">Email</span>
+      <input name="email" type="email" autocomplete="email" class="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
+    </label>
+    <label class="block">
+      <span class="text-sm font-medium">Company</span>
+      <input name="company" autocomplete="organization" class="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
+    </label>
+  </div>
+  <label class="block">
+    <span class="text-sm font-medium">What do you need?</span>
+    <select name="service" class="mt-1 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+      <option value="">Choose a service</option>
+      {SITE.services.map((s) => <option value={s.title}>{s.title}</option>)}
+      <option value="Other">Something else</option>
+    </select>
+  </label>
+  <label class="block">
+    <span class="text-sm font-medium">Details <span class="text-rose-600">*</span></span>
+    <textarea name="message" required minlength="5" maxlength="2000" rows="4" placeholder="Sizes, quantities, deadline…" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"></textarea>
+  </label>
+  <!-- Honeypot: hidden from people, filled by bots -->
+  <div class="hidden" aria-hidden="true">
+    <label>Website <input name="website" tabindex="-1" autocomplete="off" /></label>
+  </div>
+  <p id="quote-status" role="status" class="hidden rounded-lg px-3 py-2 text-sm"></p>
+  <button type="submit" class="h-12 w-full rounded-lg bg-accent-500 px-6 font-semibold text-white shadow-sm hover:bg-accent-600 disabled:opacity-60 sm:w-auto">Send request</button>
+  <p class="text-xs text-slate-500">We reply within one working day{phone ? ` — or call us on ${phone}` : ""}.</p>
+</form>
+
+<script>
+  const form = document.getElementById("quote-form") as HTMLFormElement;
+  const status = document.getElementById("quote-status") as HTMLParagraphElement;
+  const button = form.querySelector("button[type=submit]") as HTMLButtonElement;
+
+  const show = (text: string, ok: boolean) => {
+    status.textContent = text;
+    status.className = `rounded-lg px-3 py-2 text-sm ${ok ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-700"}`;
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    button.disabled = true;
+    button.textContent = "Sending…";
+    try {
+      const data = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch("/api/public/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        form.reset();
+        show("Thank you! We received your request and will contact you soon.", true);
+      } else {
+        show(body.issues?.[0]?.message ?? body.message ?? "Something went wrong. Please call us instead.", false);
+      }
+    } catch {
+      show("Can't reach the server. Please check your connection or call us.", false);
+    } finally {
+      button.disabled = false;
+      button.textContent = "Send request";
+    }
+  });
+</script>

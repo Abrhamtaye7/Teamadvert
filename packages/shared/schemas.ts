@@ -264,3 +264,22 @@ export const customerNoteSchema = z.object({ note: z.string().trim().min(1, "Not
 export const supplierNoteSchema = z.object({ content: z.string().trim().min(1, "Note required") });
 
 export const proformaUpdateSchema = proformaCreateSchema.partial();
+
+/** Public website "request a quote" form. `website` is a honeypot: humans never see or fill it. */
+export const quoteRequestSchema = z.object({
+  name: z.string().trim().min(2, "Please enter your name").max(120),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9 ()-]{7,20}$/, "Please enter a valid phone number"),
+  email: z.union([z.literal(""), z.string().trim().email("Please enter a valid email").max(191)]).optional(),
+  company: z.string().trim().max(191).optional(),
+  service: z.string().trim().max(120).optional(),
+  message: z.string().trim().min(5, "Please tell us a little about the job").max(2000),
+  website: z.string().max(0).optional(),
+});
+
+export const leadStatusSchema = z.object({
+  status: z.enum(["new", "contacted", "converted", "closed"]),
+  customerId: z.number().int().positive().optional(),
+});

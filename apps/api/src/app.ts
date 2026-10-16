@@ -6,6 +6,7 @@ import { backupRoutes } from "./routes/backups";
 import { customerRoutes } from "./routes/customers";
 import { itemRoutes } from "./routes/items";
 import { jobRoutes } from "./routes/jobs";
+import { leadRoutes, publicRoutes } from "./routes/leads";
 import { notificationRoutes } from "./routes/notifications";
 import { paymentRoutes } from "./routes/payments";
 import { proformaRoutes } from "./routes/proformas";
@@ -24,6 +25,7 @@ export function createApp(deps: Deps) {
     c.set("db", deps.db);
     c.set("config", deps.config);
     c.set("loginLimiter", deps.loginLimiter);
+    c.set("quoteLimiter", deps.quoteLimiter);
     c.set("cbeVerifier", deps.cbeVerifier);
     c.header("X-Robots-Tag", "noindex, nofollow");
     c.header("Cache-Control", "no-store");
@@ -43,6 +45,8 @@ export function createApp(deps: Deps) {
   app.route("/search", searchRoutes);
   app.route("/notifications", notificationRoutes);
   app.route("/backups", backupRoutes);
+  app.route("/public", publicRoutes);
+  app.route("/leads", leadRoutes);
 
   app.notFound((c) => c.json({ message: "Not found" }, 404));
   app.onError((err, c) => {

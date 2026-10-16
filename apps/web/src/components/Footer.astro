@@ -1,0 +1,57 @@
+---
+import { Clock, Mail, MapPin, Phone } from "@lucide/astro";
+import { SITE, ready } from "../content/site";
+
+const c = SITE.contact;
+const phone = ready(c.phone);
+const email = ready(c.email);
+const address = ready(c.address);
+const hours = ready(c.hours);
+const socials = Object.entries(SITE.social).filter(([, url]) => url);
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-brand-950 text-slate-300">
+  <div class="container-site grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="lg:col-span-2">
+      <p class="text-lg font-semibold text-white">{SITE.name}</p>
+      <p class="mt-2 max-w-sm text-sm">{SITE.description}</p>
+      {
+        socials.length > 0 && (
+          <ul class="mt-4 flex flex-wrap gap-3 text-sm">
+            {socials.map(([name, url]) => (
+              <li>
+                <a href={url} rel="noopener" target="_blank" class="capitalize hover:text-white">
+                  {name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-white">Contact</p>
+      <ul class="mt-3 space-y-2 text-sm">
+        {phone && <li class="flex gap-2"><Phone class="mt-0.5 size-4 shrink-0" /><a href={`tel:${phone.replace(/\s/g, "")}`} class="hover:text-white">{phone}</a></li>}
+        {email && <li class="flex gap-2"><Mail class="mt-0.5 size-4 shrink-0" /><a href={`mailto:${email}`} class="hover:text-white">{email}</a></li>}
+        <li class="flex gap-2"><MapPin class="mt-0.5 size-4 shrink-0" />{[address, c.city, c.country].filter(Boolean).join(", ")}</li>
+        {hours && <li class="flex gap-2"><Clock class="mt-0.5 size-4 shrink-0" />{hours}</li>}
+      </ul>
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-white">Company</p>
+      <ul class="mt-3 space-y-2 text-sm">
+        <li><a href="/services/" class="hover:text-white">Services</a></li>
+        <li><a href="/about/" class="hover:text-white">About us</a></li>
+        <li><a href="/contact/#quote" class="hover:text-white">Request a quote</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10">
+    <div class="container-site flex flex-col gap-2 py-5 text-xs text-slate-400 sm:flex-row sm:justify-between">
+      <p>© {year} {SITE.name}. All rights reserved.</p>
+      <a href="/office/" rel="nofollow" class="hover:text-white">Staff login</a>
+    </div>
+  </div>
+</footer>

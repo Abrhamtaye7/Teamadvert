@@ -40,7 +40,7 @@ describe("migrations", () => {
     const [row] = await db.execute<{ n: number }>(
       sql`SELECT COUNT(*)::int AS n FROM information_schema.tables WHERE table_schema = 'public' AND table_name <> '__drizzle_migrations'`,
     );
-    expect(row.n).toBe(26);
+    expect(row.n).toBe(27);
   });
 
   it("keep the migrations log in the public schema", async () => {

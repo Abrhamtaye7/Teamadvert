@@ -20,6 +20,7 @@ const FinancePage = lazy(() => import("../features/finance/FinancePage"));
 const ReportsPage = lazy(() => import("../features/reports/ReportsPage"));
 const NotificationsPage = lazy(() => import("../features/notifications/NotificationsPage"));
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage"));
+const LeadsPage = lazy(() => import("../features/leads/LeadsPage"));
 const NotFoundPage = lazy(() => import("./NotFoundPage"));
 
 export const router = createBrowserRouter(
@@ -43,6 +44,7 @@ export const router = createBrowserRouter(
             { path: "items", element: <ItemsPage /> },
             { path: "items/:id", element: <ItemDetailPage /> },
             { path: "finance", element: <FinancePage /> },
+            { path: "leads", element: <LeadsPage /> },
             { path: "reports", element: <ReportsPage /> },
             { path: "notifications", element: <NotificationsPage /> },
             { path: "settings", element: <SettingsPage /> },

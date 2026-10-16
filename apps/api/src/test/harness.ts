@@ -43,7 +43,8 @@ export async function createHarness(overrides: Partial<Config> = {}) {
     cbe.calls.push({ trx, amount });
     return cbe.next;
   };
-  const app = createApp({ db, config, loginLimiter, cbeVerifier });
+  const quoteLimiter = new FixedWindowLimiter(1000, 60_000);
+  const app = createApp({ db, config, loginLimiter, quoteLimiter, cbeVerifier });
 
   async function request(method: string, path: string, { body, cookie }: { body?: unknown; cookie?: string } = {}) {
     const res = await app.request(path, {
@@ -72,5 +73,5 @@ export async function createHarness(overrides: Partial<Config> = {}) {
     return setCookie.split(";")[0];
   }
 
-  return { app, db: db as Db, config, loginLimiter, cbe, request, login, close: () => pool.end() };
+  return { app, db: db as Db, config, loginLimiter, quoteLimiter, cbe, request, login, close: () => pool.end() };
 }

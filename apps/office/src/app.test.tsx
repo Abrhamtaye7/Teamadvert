@@ -54,7 +54,8 @@ describe("permissions and navigation", () => {
 
   it("hides sections the user has no access to, but always shows Settings", () => {
     const nav = visibleNav(user("Sales", ["proformas", "customers"])).map((i) => i.label);
-    expect(nav).toEqual(["Proformas", "Customers", "Settings"]);
+    expect(nav).toEqual(["Proformas", "Quote requests", "Customers", "Settings"]);
+    expect(visibleNav(user("Production", ["customers"])).map((i) => i.label)).toEqual(["Customers", "Settings"]);
   });
 });
 

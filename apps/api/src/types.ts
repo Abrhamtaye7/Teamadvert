@@ -8,6 +8,8 @@ export type Deps = {
   db: Db;
   config: Config;
   loginLimiter: FixedWindowLimiter;
+  /** Website quote form: per-IP limit */
+  quoteLimiter: FixedWindowLimiter;
   cbeVerifier: CbeVerifier;
 };
 

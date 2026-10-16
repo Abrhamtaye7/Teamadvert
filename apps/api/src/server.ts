@@ -16,7 +16,9 @@ const { db, pool } = createDb(config.databaseUrl);
 
 // Legacy limit: 20 login attempts per IP per 15 minutes (per-account lockout is separate)
 const loginLimiter = new FixedWindowLimiter(20, 15 * 60_000);
-const api = createApp({ db, config, loginLimiter, cbeVerifier: createCbeVerifier(config.cbe) });
+// Website quote form: 5 requests per IP per hour
+const quoteLimiter = new FixedWindowLimiter(5, 60 * 60_000);
+const api = createApp({ db, config, loginLimiter, quoteLimiter, cbeVerifier: createCbeVerifier(config.cbe) });
 
 const root = new Hono();
 root.route("/", api);

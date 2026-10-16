@@ -19,7 +19,8 @@
     "db:migrate": "npm run migrate -w @teamadvert/db",
     "db:seed": "npm run seed -w @teamadvert/db",
     "db:studio": "npm run studio -w @teamadvert/db",
-    "package:cpanel": "npm run build && npm run build -w @teamadvert/api && node tools/package-cpanel.mjs"
+    "package:cpanel": "node tools/check-content.mjs && npm run build && npm run build -w @teamadvert/api && node tools/package-cpanel.mjs",
+    "check:content": "node tools/check-content.mjs"
   },
   "engines": {
     "node": ">=22"

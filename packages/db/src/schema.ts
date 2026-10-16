@@ -440,6 +440,29 @@ export const notifications = pgTable(
   (t) => [index("idx_notification_user").on(t.userId, t.read)],
 );
 
+/** Quote requests from the public website's contact form. */
+export const leadStatuses = ["new", "contacted", "converted", "closed"] as const;
+export const leadStatusEnum = pgEnum("lead_status", leadStatuses);
+
+export const leads = pgTable(
+  "leads",
+  {
+    id: id(),
+    name: varchar({ length: 120 }).notNull(),
+    phone: varchar({ length: 32 }).notNull(),
+    email: varchar({ length: 191 }),
+    company: varchar({ length: 191 }),
+    service: varchar({ length: 120 }),
+    message: text().notNull(),
+    status: leadStatusEnum().notNull().default("new"),
+    customerId: integer().references(() => customers.id),
+    ip: varchar({ length: 64 }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("idx_lead_status").on(t.status, t.createdAt)],
+);
+
 export const backups = pgTable("backups", {
   id: id(),
   path: varchar({ length: 512 }).notNull(),

@@ -1,0 +1,13 @@
+---
+import { Gift, Image, Palette, Printer, Signpost, Truck } from "@lucide/astro";
+
+interface Props {
+  name: string;
+  class?: string;
+}
+const icons = { sign: Signpost, image: Image, truck: Truck, printer: Printer, palette: Palette, gift: Gift } as const;
+const { name, class: className } = Astro.props;
+const Icon = icons[name as keyof typeof icons] ?? Signpost;
+---
+
+<Icon class={className} aria-hidden="true" />
