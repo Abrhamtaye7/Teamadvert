@@ -1,3 +1,4 @@
+@import "@fontsource-variable/inter";
 @import "tailwindcss";
 
 /* Same brand tokens as the office app (apps/office/src/styles.css) */
@@ -12,15 +13,19 @@
   --color-brand-700: #1659c4;
   --color-brand-800: #18489f;
   --color-brand-900: #193f7d;
-  --color-brand-950: #0f2550;
+  --color-brand-950: #0b1a3a;
 
   --color-accent-50: #fff7ed;
   --color-accent-100: #ffedd4;
+  --color-accent-300: #fdc485;
   --color-accent-400: #fbaa4c;
   --color-accent-500: #f7931e;
   --color-accent-600: #e07a0c;
 
-  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
+  --font-sans: "Inter Variable", "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
+
+  /* Motion (UI/UX Pro Max "Motion-Driven": 300–700 ms, ease-out, transform/opacity only) */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
@@ -40,4 +45,146 @@
 
 .container-site {
   @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+
+/* Oversized display type (Exaggerated Minimalism) */
+.display {
+  font-size: clamp(2.6rem, 7.5vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+/* ---------- Scroll reveal ----------
+ * Elements start hidden only when JavaScript runs (html.js), so content is always visible to
+ * no-JS visitors and search engines. --i staggers siblings by 80 ms each.
+ */
+html.js .reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+html.js .reveal.reveal-zoom {
+  transform: translateY(18px) scale(0.95);
+}
+html.js .reveal.reveal-left {
+  transform: translateX(-32px);
+}
+html.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero headline: words rise in one after another */
+.rise-word {
+  display: inline-block;
+  animation: rise 1s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.55em) rotate(2deg);
+  }
+}
+
+.fade-up {
+  animation: fade-up 0.9s var(--ease-out-expo) both;
+  animation-delay: var(--delay, 0.5s);
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* Floating decorative shapes */
+.float {
+  animation: float 9s ease-in-out infinite;
+}
+.float-slow {
+  animation: float 13s ease-in-out infinite reverse;
+}
+@keyframes float {
+  50% {
+    transform: translate3d(0, -18px, 0);
+  }
+}
+
+/* Services marquee */
+.marquee-track {
+  animation: marquee 45s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Animated gradient for call-to-action bands */
+.gradient-pan {
+  background-size: 200% 200%;
+  animation: pan 12s ease-in-out infinite;
+}
+@keyframes pan {
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Picture zoom on card hover/focus */
+.zoom-media > * {
+  transition: transform 0.7s var(--ease-out-expo);
+}
+.group:hover .zoom-media > *,
+.group:focus-visible .zoom-media > * {
+  transform: scale(1.06);
+}
+
+/* Sticky "how it works" steps light up as they scroll past */
+html.js .step {
+  opacity: 0.35;
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-out-expo), border-color 0.5s ease;
+}
+html.js .step.is-active {
+  opacity: 1;
+  transform: translateX(6px);
+  border-color: var(--color-accent-500);
+}
+
+/* Header turns solid once the page scrolls */
+.site-header[data-scrolled="true"] {
+  box-shadow: 0 6px 24px -12px rgb(15 23 42 / 0.25);
+  background-color: rgb(255 255 255 / 0.97);
+}
+
+/* Respect reduced-motion: show everything immediately, no looping motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  html.js .reveal,
+  html.js .step {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .rise-word,
+  .fade-up,
+  .float,
+  .float-slow,
+  .marquee-track,
+  .gradient-pan {
+    animation: none;
+  }
+  .zoom-media > * {
+    transition: none;
+  }
 }

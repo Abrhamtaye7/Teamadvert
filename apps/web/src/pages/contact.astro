@@ -10,16 +10,16 @@ const card = "flex items-center gap-4 rounded-2xl border border-slate-200 p-5";
 ---
 
 <Base title="Contact & quotes" description={`Contact ${SITE.name} on ${c.phones[0]} or visit us at ${fullAddress()}. Request a free quote for signage, banners, branding and printing.`}>
-  <section class="bg-brand-700 py-14 text-white md:py-20">
-    <div class="container-site">
-      <h1 class="text-4xl font-bold tracking-tight">Let's talk about your project</h1>
-      <p class="mt-3 max-w-2xl text-lg text-brand-100">Call, WhatsApp, Telegram or send the form — we'll get back to you with a proforma.</p>
+  <section class="relative overflow-hidden bg-brand-950 py-16 text-white md:py-24"><div data-parallax="0.2" class="pointer-events-none absolute -right-32 -top-32 size-[28rem] rounded-full bg-brand-600/40 blur-3xl" aria-hidden="true"></div>
+    <div class="container-site relative">
+      <h1 class="fade-up relative text-4xl font-extrabold tracking-tight sm:text-5xl" style="--delay:0s">Let's talk about your project</h1>
+      <p class="fade-up relative mt-3 max-w-2xl text-lg text-brand-100" style="--delay:.2s">Call, WhatsApp, Telegram or send the form — we'll get back to you with a proforma.</p>
     </div>
   </section>
 
   <section class="py-14 md:py-20">
     <div class="container-site grid gap-10 lg:grid-cols-[1fr_1.4fr]">
-      <div class="space-y-4">
+      <div class="reveal space-y-4">
         <div class={card}>
           <span class="rounded-xl bg-brand-50 p-3 text-brand-600"><Phone class="size-6" /></span>
           <span>
@@ -60,7 +60,7 @@ const card = "flex items-center gap-4 rounded-2xl border border-slate-200 p-5";
         }
       </div>
 
-      <div id="quote" class="scroll-mt-24 rounded-2xl border border-slate-200 p-6 shadow-sm md:p-8">
+      <div id="quote" class="reveal scroll-mt-24 rounded-2xl border border-slate-200 p-6 shadow-sm md:p-8">
         <h2 class="text-2xl font-semibold">Request a quote</h2>
         <p class="mb-6 mt-1 text-sm text-slate-600">Tell us what you need. The more detail (sizes, quantities, deadline), the faster we can price it.</p>
         <QuoteForm />

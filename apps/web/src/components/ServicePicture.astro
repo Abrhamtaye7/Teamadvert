@@ -12,10 +12,12 @@ interface Props {
   alt: string;
   tone?: "blue" | "orange" | "navy";
   size?: "lg" | "sm";
+  /** Where the illustration icon sits; "top" leaves room for text laid over the picture */
+  iconPosition?: "center" | "top";
   class?: string;
 }
 
-const { photoKey, icon, alt, tone = "blue", size = "lg", class: className } = Astro.props;
+const { photoKey, icon, alt, tone = "blue", size = "lg", iconPosition = "center", class: className } = Astro.props;
 
 const photos = import.meta.glob<ImageMetadata>("../assets/services/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" });
 const photo = Object.entries(photos).find(([path]) => path.split("/").pop()!.replace(/\.\w+$/, "") === photoKey)?.[1];
@@ -46,7 +48,7 @@ const tones = {
       <div class="absolute inset-0 opacity-20 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:14px_14px]" />
       <div class="absolute -right-8 -top-8 size-32 rounded-full bg-white/15" />
       <div class="absolute -bottom-10 -left-6 size-28 rounded-full bg-black/10" />
-      <div class="absolute inset-0 flex items-center justify-center">
+      <div class:list={["absolute inset-0 flex justify-center", iconPosition === "top" ? "items-start pt-8" : "items-center"]}>
         <span class:list={["rounded-2xl bg-white/15 ring-1 ring-white/30 backdrop-blur-sm", size === "lg" ? "p-6" : "p-3.5"]}>
           <Icon class:list={["text-white", size === "lg" ? "size-16" : "size-9"]} stroke-width={1.6} aria-hidden="true" />
         </span>

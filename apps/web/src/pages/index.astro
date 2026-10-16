@@ -1,6 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import { ArrowRight, CheckCircle2, MessageCircle, Phone, Send } from "@lucide/astro";
+import { ArrowRight, BadgeCheck, Clock3, Hammer, MessageCircle, Palette, Phone, Send, ShieldCheck, Truck, Wrench } from "@lucide/astro";
 import logo from "../assets/teamlogo.png";
 import Base from "../layouts/Base.astro";
 import ServicePicture from "../components/ServicePicture.astro";
@@ -8,47 +8,114 @@ import { SITE, telegramHref, telHref, whatsappHref } from "../content/site";
 
 const [mainPhone] = SITE.contact.phones;
 const tones = ["blue", "orange", "navy"] as const;
+const headline = [
+  ["Make", "your", "business"],
+  ["impossible", "to", "miss."],
+];
+const reasons = [
+  { icon: Palette, title: "In-house design", text: "Our designers prepare and adjust your artwork before anything is printed." },
+  { icon: BadgeCheck, title: "Clear proformas", text: "Itemised prices with VAT, so you know the cost before you commit." },
+  { icon: ShieldCheck, title: "Quality materials", text: "Outdoor-grade inks, vinyls and frames that survive sun and rain." },
+  { icon: Wrench, title: "Installation included", text: "Our team mounts signs, wraps vehicles and sets up event displays." },
+  { icon: Clock3, title: "On-time delivery", text: "Agreed deadlines tracked from approval to handover." },
+  { icon: Hammer, title: "Support after the job", text: "Repairs, replacements and re-prints when you need them." },
+];
+let w = 0;
 ---
 
 <Base title={SITE.name}>
-  <!-- Hero -->
-  <section class="relative overflow-hidden bg-brand-700 text-white">
-    <div class="absolute -right-32 -top-32 size-[28rem] rounded-full bg-accent-500/25 blur-3xl" aria-hidden="true"></div>
-    <div class="absolute -bottom-40 -left-24 size-[26rem] rounded-full bg-brand-400/30 blur-3xl" aria-hidden="true"></div>
-    <div class="container-site relative grid items-center gap-10 py-14 md:grid-cols-[1.2fr_1fr] md:py-24">
+  <!-- ===== Hero ===== -->
+  <section class="relative isolate overflow-hidden bg-brand-950 text-white">
+    <!-- parallax background shapes -->
+    <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+      <div data-parallax="0.25" class="absolute -right-40 -top-40 size-[34rem] rounded-full bg-brand-600/50 blur-3xl"></div>
+      <div data-parallax="0.12" class="absolute -bottom-48 -left-32 size-[30rem] rounded-full bg-accent-500/30 blur-3xl"></div>
+      <div class="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(white_1px,transparent_1px),linear-gradient(90deg,white_1px,transparent_1px)] [background-size:56px_56px]"></div>
+    </div>
+
+    <div class="container-site grid min-h-[86svh] items-center gap-12 py-16 lg:grid-cols-[1.25fr_1fr]">
       <div>
-        <p class="text-sm font-semibold uppercase tracking-widest text-accent-400">{SITE.tagline}</p>
-        <h1 class="mt-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Make your business impossible to miss.</h1>
-        <p class="mt-5 max-w-xl text-lg text-brand-100">Signs, banners, vehicle branding and print — designed, produced and installed by one team, on time.</p>
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a href="/contact/#quote" class="inline-flex h-12 items-center gap-2 rounded-lg bg-accent-500 px-6 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600">
-            Get a free quote <ArrowRight class="size-4" />
+        <p class="fade-up inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-300 ring-1 ring-white/15" style="--delay:0s">
+          <span class="size-1.5 rounded-full bg-accent-400"></span>{SITE.tagline}
+        </p>
+        <h1 class="display mt-6">
+          {
+            headline.map((line, li) => (
+              <span class:list={["block", li === 1 && "text-accent-400"]}>
+                {line.map((word) => (
+                  <span class="rise-word" style={`--i:${w++}`}>
+                    {word}&nbsp;
+                  </span>
+                ))}
+              </span>
+            ))
+          }
+        </h1>
+        <p class="fade-up mt-6 max-w-xl text-lg text-brand-100 sm:text-xl" style="--delay:.65s">
+          Signs, banners, vehicle branding and print — designed, produced and installed by one team, on time.
+        </p>
+        <div class="fade-up mt-9 flex flex-wrap gap-3" style="--delay:.8s">
+          <a href="/contact/#quote" class="group inline-flex h-13 items-center gap-2 rounded-xl bg-accent-500 px-7 text-base font-semibold text-white shadow-xl shadow-accent-500/25 transition hover:bg-accent-600">
+            Get a free quote <ArrowRight class="size-5 transition-transform duration-300 group-hover:translate-x-1" />
           </a>
-          <a href={telHref(mainPhone)} class="inline-flex h-12 items-center gap-2 rounded-lg bg-white/10 px-5 font-semibold text-white ring-1 ring-white/25 hover:bg-white/20">
-            <Phone class="size-4" /> {mainPhone}
+          <a href={telHref(mainPhone)} class="inline-flex h-13 items-center gap-2 rounded-xl bg-white/10 px-6 font-semibold ring-1 ring-white/25 transition hover:bg-white/20">
+            <Phone class="size-5" /> {mainPhone}
           </a>
         </div>
-        <div class="mt-4 flex flex-wrap gap-3 text-sm">
-          <a href={whatsappHref()} rel="noopener" target="_blank" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1.5 font-medium hover:bg-emerald-500"><MessageCircle class="size-4" /> WhatsApp</a>
-          <a href={telegramHref()} rel="noopener" target="_blank" class="inline-flex items-center gap-1.5 rounded-full bg-sky-500/90 px-3 py-1.5 font-medium hover:bg-sky-500"><Send class="size-4" /> Telegram</a>
+        <div class="fade-up mt-5 flex flex-wrap gap-2 text-sm" style="--delay:.95s">
+          <a href={whatsappHref()} rel="noopener" target="_blank" class="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-emerald-500 px-4 font-medium transition hover:bg-emerald-600"><MessageCircle class="size-4" /> WhatsApp</a>
+          <a href={telegramHref()} rel="noopener" target="_blank" class="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-sky-500 px-4 font-medium transition hover:bg-sky-600"><Send class="size-4" /> Telegram</a>
         </div>
       </div>
-      <div class="hidden justify-center md:flex">
-        <div class="rounded-full bg-white p-6 shadow-2xl">
-          <Image src={logo} alt={`${SITE.name} logo`} width={260} height={260} class="size-64" loading="eager" />
+
+      <!-- Logo with orbiting service badges -->
+      <div class="relative mx-auto hidden aspect-square w-full max-w-md lg:block" aria-hidden="true">
+        <div class="absolute inset-8 rounded-full border border-white/10"></div>
+        <div class="absolute inset-20 rounded-full border border-dashed border-white/15"></div>
+        <div class="float absolute inset-0 flex items-center justify-center">
+          <div class="rounded-full bg-white p-7 shadow-[0_0_120px_-10px_rgba(47,120,240,0.7)]">
+            <Image src={logo} alt="" width={220} height={220} class="size-52" loading="eager" />
+          </div>
         </div>
+        {
+          SITE.services.slice(0, 4).map((s, i) => (
+            <div
+              class:list={["float-slow absolute rounded-2xl bg-brand-900/80 px-4 py-2.5 text-sm font-medium shadow-lg backdrop-blur-md ring-1 ring-white/20", ["left-0 top-2", "right-0 top-2", "bottom-4 left-0", "bottom-4 right-0"][i]]}
+              style={`animation-delay:-${i * 3}s`}
+            >
+              {s.title}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- Services marquee -->
+    <div class="marquee relative border-y border-white/10 bg-accent-500 py-4 text-brand-950">
+      <div class="marquee-track flex w-max gap-10 whitespace-nowrap text-lg font-bold uppercase tracking-wide">
+        {
+          [...SITE.services, ...SITE.services].map((s) => (
+            <span class="flex items-center gap-10">
+              {s.title}
+              <span class="size-2 rounded-full bg-brand-950/60" />
+            </span>
+          ))
+        }
       </div>
     </div>
   </section>
 
+  <!-- ===== Stats ===== -->
   {
     SITE.stats.length > 0 && (
       <section class="border-b border-slate-200 bg-white">
-        <dl class="container-site grid grid-cols-3 gap-4 py-8 text-center md:py-10">
-          {SITE.stats.map((s) => (
-            <div>
-              <dd class="text-2xl font-bold text-brand-700 sm:text-4xl">{s.value}</dd>
-              <dt class="mt-1 text-xs text-slate-500 sm:text-sm">{s.label}</dt>
+        <dl class="container-site grid grid-cols-3 divide-x divide-slate-200 py-10 text-center md:py-14">
+          {SITE.stats.map((s, i) => (
+            <div class="reveal px-2" style={`--i:${i}`}>
+              <dd class="text-3xl font-extrabold tracking-tight text-brand-700 tabular-nums sm:text-5xl lg:text-6xl" data-count={s.value}>
+                {s.value}
+              </dd>
+              <dt class="mt-2 text-xs font-medium uppercase tracking-wider text-slate-500 sm:text-sm">{s.label}</dt>
             </div>
           ))}
         </dl>
@@ -56,44 +123,76 @@ const tones = ["blue", "orange", "navy"] as const;
     )
   }
 
-  <!-- Services -->
-  <section class="bg-slate-50 py-16 md:py-24" aria-labelledby="services-title">
+  <!-- ===== Services (bento) ===== -->
+  <section class="bg-slate-50 py-20 md:py-28" aria-labelledby="services-title">
     <div class="container-site">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div class="max-w-2xl">
-          <h2 id="services-title" class="text-3xl font-bold tracking-tight">What we do</h2>
-          <p class="mt-3 text-slate-600">From a single banner to a full brand rollout across your branches and fleet.</p>
+      <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div class="reveal max-w-2xl">
+          <p class="text-sm font-semibold uppercase tracking-widest text-accent-600">What we do</p>
+          <h2 id="services-title" class="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">Everything your brand needs to be seen.</h2>
         </div>
-        <a href="/services/" class="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline">All services <ArrowRight class="size-4" /></a>
+        <a href="/services/" class="reveal group inline-flex items-center gap-1.5 font-semibold text-brand-700">
+          All {SITE.services.length} services <ArrowRight class="size-4 transition-transform group-hover:translate-x-1" />
+        </a>
       </div>
-      <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+      <div class="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[15rem]">
         {
-          SITE.services.map((s, i) => (
-            <a href={`/services/#${s.slug}`} class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-              <ServicePicture photoKey={s.slug} icon={s.icon} alt={s.title} tone={tones[i % 3]} />
-              <div class="p-5">
-                <h3 class="text-lg font-semibold group-hover:text-brand-700">{s.title}</h3>
-                <p class="mt-1.5 text-sm text-slate-600">{s.summary}</p>
-                <p class="mt-3 text-xs font-medium text-slate-500">{s.items.length} options · {s.items.slice(0, 2).map((x) => x.title).join(", ")}…</p>
-              </div>
-            </a>
-          ))
+          SITE.services.slice(0, 7).map((s, i) => {
+            const featured = i === 0;
+            return (
+              <a
+                href={`/services/#${s.slug}`}
+                class:list={[
+                  "reveal reveal-zoom group relative cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-shadow duration-300 hover:shadow-xl",
+                  featured && "sm:col-span-2 lg:row-span-2",
+                  i === 3 && "lg:col-span-2",
+                ]}
+                style={`--i:${i % 4}`}
+              >
+                <div class="zoom-media absolute inset-0 [&>*]:h-full [&>*]:aspect-auto">
+                  <ServicePicture photoKey={s.slug} icon={s.icon} alt={s.title} tone={tones[i % 3]} size={featured ? "lg" : "sm"} iconPosition="top" />
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/30 to-transparent" />
+                <div class="relative flex h-full min-h-56 flex-col justify-end p-6 text-white">
+                  <h3 class:list={["font-bold leading-tight", featured ? "text-3xl" : "text-xl"]}>{s.title}</h3>
+                  <p class:list={["mt-2 text-sm text-slate-200", !featured && "line-clamp-2"]}>{s.summary}</p>
+                  <span class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-accent-300">
+                    {s.items.length} options <ArrowRight class="size-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </div>
+              </a>
+            );
+          })
         }
+        <a href="/services/" class="reveal reveal-zoom group flex min-h-56 cursor-pointer flex-col justify-between rounded-3xl bg-accent-500 p-6 text-brand-950 transition-colors duration-300 hover:bg-accent-400" style="--i:3">
+          <span class="text-5xl font-extrabold tracking-tight">+{SITE.services.length - 7}</span>
+          <span>
+            <span class="block text-xl font-bold leading-tight">More services</span>
+            <span class="mt-2 block text-sm font-medium">{SITE.services.slice(7).map((s) => s.title).join(" · ")}</span>
+            <span class="mt-3 inline-flex items-center gap-1 text-sm font-semibold">See everything <ArrowRight class="size-4 transition-transform group-hover:translate-x-1" /></span>
+          </span>
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- Process -->
-  <section class="py-16 md:py-24" aria-labelledby="process-title">
-    <div class="container-site">
-      <h2 id="process-title" class="text-3xl font-bold tracking-tight">How it works</h2>
-      <ol class="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+  <!-- ===== How it works (sticky storytelling) ===== -->
+  <section class="py-20 md:py-28" aria-labelledby="process-title">
+    <div class="container-site grid gap-12 lg:grid-cols-[1fr_1.2fr]">
+      <div class="lg:sticky lg:top-28 lg:self-start">
+        <p class="reveal text-sm font-semibold uppercase tracking-widest text-accent-600">How it works</p>
+        <h2 id="process-title" class="reveal mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">From idea to installed, in four steps.</h2>
+        <p class="reveal mt-4 max-w-md text-slate-600">One team handles the whole job, so nothing gets lost between the designer, the printer and the installer.</p>
+        <a href="/contact/#quote" class="reveal mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-brand-600 px-6 font-semibold text-white transition hover:bg-brand-700">Start with a quote <ArrowRight class="size-4" /></a>
+      </div>
+      <ol class="space-y-5">
         {
           SITE.process.map((step, i) => (
-            <li class="rounded-2xl border border-slate-200 p-6">
-              <span class="flex size-10 items-center justify-center rounded-full bg-accent-500 font-bold text-white">{i + 1}</span>
-              <h3 class="mt-4 font-semibold">{step.title}</h3>
-              <p class="mt-2 text-sm text-slate-600">{step.text}</p>
+            <li class="step rounded-3xl border-2 border-slate-200 bg-white p-7 md:p-9">
+              <span class="text-6xl font-extrabold tracking-tighter text-accent-500/90 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+              <h3 class="mt-3 text-2xl font-bold">{step.title}</h3>
+              <p class="mt-2 text-slate-600">{step.text}</p>
             </li>
           ))
         }
@@ -101,18 +200,23 @@ const tones = ["blue", "orange", "navy"] as const;
     </div>
   </section>
 
-  <!-- Why us -->
-  <section class="bg-brand-950 py-16 text-white md:py-20">
-    <div class="container-site grid gap-10 md:grid-cols-2 md:items-center">
-      <div>
-        <h2 class="text-3xl font-bold tracking-tight">One partner from design to installation</h2>
-        <p class="mt-4 text-slate-300">8+ years and more than 42,000 jobs: you deal with one team that designs, prints and installs — so colours match, deadlines hold and you always know who to call.</p>
+  <!-- ===== Why us ===== -->
+  <section class="relative overflow-hidden bg-brand-950 py-20 text-white md:py-28">
+    <div data-parallax="-0.08" class="pointer-events-none absolute -right-24 top-0 size-[26rem] rounded-full bg-brand-600/30 blur-3xl" aria-hidden="true"></div>
+    <div class="container-site relative">
+      <div class="reveal max-w-2xl">
+        <p class="text-sm font-semibold uppercase tracking-widest text-accent-400">Why Team Advert</p>
+        <h2 class="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">8+ years. 42,000+ jobs. One team.</h2>
       </div>
-      <ul class="grid gap-3 sm:grid-cols-2">
+      <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {
-          ["In-house designers", "Clear proformas with VAT", "Quality materials", "Installation included", "On-time delivery", "Support after the job"].map((point) => (
-            <li class="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-3 text-sm">
-              <CheckCircle2 class="size-5 shrink-0 text-accent-400" /> {point}
+          reasons.map(({ icon: Icon, title, text }, i) => (
+            <li class="reveal rounded-2xl bg-white/5 p-6 ring-1 ring-white/10 transition-colors duration-300 hover:bg-white/10" style={`--i:${i % 3}`}>
+              <span class="inline-flex rounded-xl bg-accent-500/15 p-3 text-accent-400">
+                <Icon class="size-6" />
+              </span>
+              <h3 class="mt-4 text-lg font-semibold">{title}</h3>
+              <p class="mt-1.5 text-sm text-slate-300">{text}</p>
             </li>
           ))
         }
@@ -120,15 +224,20 @@ const tones = ["blue", "orange", "navy"] as const;
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="py-16 md:py-20">
+  <!-- ===== CTA ===== -->
+  <section class="py-20 md:py-24">
     <div class="container-site">
-      <div class="flex flex-col items-start gap-6 rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-8 text-white md:flex-row md:items-center md:justify-between md:p-12">
-        <div>
-          <h2 class="text-2xl font-bold md:text-3xl">Have a project in mind?</h2>
-          <p class="mt-2 text-brand-100">Tell us the size, quantity and deadline — we'll send a proforma.</p>
+      <div class="reveal reveal-zoom gradient-pan relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-600 via-brand-800 to-accent-600 p-10 text-white md:p-16">
+        <Truck class="float absolute -right-6 -top-6 size-48 text-white/10" aria-hidden="true" />
+        <div class="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+          <div class="max-w-xl">
+            <h2 class="text-3xl font-extrabold tracking-tight md:text-5xl">Have a project in mind?</h2>
+            <p class="mt-3 text-lg text-brand-100">Tell us the size, quantity and deadline — we'll send you a proforma.</p>
+          </div>
+          <a href="/contact/#quote" class="group inline-flex h-14 shrink-0 items-center gap-2 rounded-xl bg-white px-8 text-lg font-bold text-brand-800 shadow-xl transition hover:bg-accent-50">
+            Request a quote <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
+          </a>
         </div>
-        <a href="/contact/#quote" class="inline-flex h-12 shrink-0 items-center gap-2 rounded-lg bg-accent-500 px-6 font-semibold text-white hover:bg-accent-600">Request a quote <ArrowRight class="size-4" /></a>
       </div>
     </div>
   </section>

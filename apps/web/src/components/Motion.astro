@@ -1,0 +1,97 @@
+---
+// Scroll-driven motion for the public site (no library, ~1 KB):
+//  .reveal          → fades/rises in when scrolled into view
+//  [data-count]     → counts up to its number ("42,000+") when visible
+//  [data-parallax]  → moves at a fraction of scroll speed (e.g. 0.15)
+//  .step            → highlighted while it is in the middle of the screen
+//  .site-header     → gets data-scrolled once the page scrolls
+// Everything is skipped when the visitor prefers reduced motion.
+---
+
+<script>
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll<HTMLElement>(".reveal");
+  if (reduce || !("IntersectionObserver" in window)) {
+    reveals.forEach((el) => el.classList.add("is-visible"));
+  } else {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add("is-visible");
+          io.unobserve(e.target);
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.12 },
+    );
+    reveals.forEach((el) => io.observe(el));
+  }
+
+  // Count-up numbers: "42,000+" → animates 0 … 42,000 then adds the suffix
+  const counters = document.querySelectorAll<HTMLElement>("[data-count]");
+  const runCounter = (el: HTMLElement) => {
+    const raw = el.dataset.count ?? el.textContent ?? "";
+    const target = Number(raw.replace(/[^\d.]/g, ""));
+    const suffix = raw.replace(/[\d.,\s]/g, "");
+    if (!target || reduce) {
+      el.textContent = raw;
+      return;
+    }
+    const start = performance.now();
+    const duration = 1800;
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(target * eased).toLocaleString("en-US") + (t === 1 ? suffix : "");
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+  if ("IntersectionObserver" in window) {
+    const co = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          runCounter(e.target as HTMLElement);
+          co.unobserve(e.target);
+        }
+      },
+      { threshold: 0.6 },
+    );
+    counters.forEach((el) => co.observe(el));
+  }
+
+  // Sticky steps: highlight the one crossing the middle of the viewport
+  const steps = document.querySelectorAll<HTMLElement>(".step");
+  if (steps.length && "IntersectionObserver" in window) {
+    const so = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) e.target.classList.toggle("is-active", e.isIntersecting);
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    );
+    steps.forEach((el) => so.observe(el));
+  }
+
+  // Parallax + header state, batched into one animation frame per scroll
+  const parallax = reduce ? [] : Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
+  const header = document.querySelector<HTMLElement>(".site-header");
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY;
+      header?.setAttribute("data-scrolled", String(y > 8));
+      for (const el of parallax) {
+        const speed = Number(el.dataset.parallax) || 0.15;
+        el.style.transform = `translate3d(0, ${(y * speed).toFixed(1)}px, 0)`;
+      }
+      ticking = false;
+    });
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+</script>

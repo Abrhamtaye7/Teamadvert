@@ -3,6 +3,7 @@ import { getImage } from "astro:assets";
 import logo from "../assets/teamlogo.png";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import Motion from "../components/Motion.astro";
 import { SITE } from "../content/site";
 import "../styles/global.css";
 
@@ -65,6 +66,8 @@ const jsonLd = {
     <meta name="twitter:card" content="summary" />
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <!-- Reveal animations hide content only when JavaScript runs -->
+    <script is:inline>document.documentElement.classList.add("js");</script>
   </head>
   <body class="flex min-h-dvh flex-col">
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
@@ -73,5 +76,6 @@ const jsonLd = {
       <slot />
     </main>
     <Footer />
+    <Motion />
   </body>
 </html>
