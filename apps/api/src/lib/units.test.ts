@@ -4,18 +4,19 @@ import { amountToWords, proformaLineTotals, round2, sum } from "./money";
 import { dateRange, pagination } from "./query";
 
 describe("money", () => {
-  it("writes amounts in words like the legacy app", () => {
+  it("writes amounts in words, with santim for the cents", () => {
     expect(amountToWords(0)).toBe("zero birr");
     expect(amountToWords(15)).toBe("fifteen birr");
-    expect(amountToWords(1250.5)).toBe("one thousand two hundred fifty birr and fifty cents");
+    expect(amountToWords(5750)).toBe("five thousand seven hundred fifty birr");
+    expect(amountToWords(1250.5)).toBe("one thousand two hundred fifty birr and fifty santim");
     expect(amountToWords(2_000_021)).toBe("two million twenty-one birr");
-    expect(amountToWords(0.07)).toBe("zero birr and seven cents");
+    expect(amountToWords(0.07)).toBe("zero birr and seven santim");
   });
 
   it("doesn't drift on float maths", () => {
     expect(round2(0.1 + 0.2)).toBe(0.3);
     expect(sum([0.1, 0.2, 0.3])).toBe(0.6);
-    expect(amountToWords(1.005 * 100)).toBe("one hundred birr and fifty cents");
+    expect(amountToWords(1.005 * 100)).toBe("one hundred birr and fifty santim");
   });
 
   it("computes proforma lines with 15% VAT by default and 0% as VAT-exempt", () => {

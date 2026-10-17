@@ -10,6 +10,8 @@ export type Deps = {
   loginLimiter: FixedWindowLimiter;
   /** Website quote form: per-IP limit */
   quoteLimiter: FixedWindowLimiter;
+  /** Public proforma QR checks: per-IP limit */
+  verifyLimiter: FixedWindowLimiter;
   cbeVerifier: CbeVerifier;
 };
 

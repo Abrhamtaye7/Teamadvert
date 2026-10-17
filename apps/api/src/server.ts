@@ -18,7 +18,9 @@ const { db, pool } = createDb(config.databaseUrl);
 const loginLimiter = new FixedWindowLimiter(20, 15 * 60_000);
 // Website quote form: 5 requests per IP per hour
 const quoteLimiter = new FixedWindowLimiter(5, 60 * 60_000);
-const api = createApp({ db, config, loginLimiter, quoteLimiter, cbeVerifier: createCbeVerifier(config.cbe) });
+// Scanning a QR code is one request; 60 per 15 minutes is plenty for a person and stops token guessing
+const verifyLimiter = new FixedWindowLimiter(60, 15 * 60_000);
+const api = createApp({ db, config, loginLimiter, quoteLimiter, verifyLimiter, cbeVerifier: createCbeVerifier(config.cbe) });
 
 const root = new Hono();
 root.route("/", api);

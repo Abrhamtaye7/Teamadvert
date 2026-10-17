@@ -9,7 +9,7 @@ import { jobRoutes } from "./routes/jobs";
 import { leadRoutes, publicRoutes } from "./routes/leads";
 import { notificationRoutes } from "./routes/notifications";
 import { paymentRoutes } from "./routes/payments";
-import { proformaRoutes } from "./routes/proformas";
+import { proformaRoutes, publicProformaRoutes } from "./routes/proformas";
 import { reportRoutes } from "./routes/reports";
 import { searchRoutes } from "./routes/search";
 import { supplierRoutes } from "./routes/suppliers";
@@ -26,6 +26,7 @@ export function createApp(deps: Deps) {
     c.set("config", deps.config);
     c.set("loginLimiter", deps.loginLimiter);
     c.set("quoteLimiter", deps.quoteLimiter);
+    c.set("verifyLimiter", deps.verifyLimiter);
     c.set("cbeVerifier", deps.cbeVerifier);
     c.header("X-Robots-Tag", "noindex, nofollow");
     c.header("Cache-Control", "no-store");
@@ -46,6 +47,7 @@ export function createApp(deps: Deps) {
   app.route("/notifications", notificationRoutes);
   app.route("/backups", backupRoutes);
   app.route("/public", publicRoutes);
+  app.route("/public/proformas", publicProformaRoutes);
   app.route("/leads", leadRoutes);
 
   app.notFound((c) => c.json({ message: "Not found" }, 404));

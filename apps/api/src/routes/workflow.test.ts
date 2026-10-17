@@ -3,7 +3,10 @@ import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { businessYear, roles } from "@teamadvert/db";
+import { createApp } from "../app";
+import { FixedWindowLimiter } from "../lib/rateLimit";
 import { createHarness, type TestHarness } from "../test/harness";
+import { validUntilDay, verifyStatus } from "./proformas";
 
 let h: TestHarness;
 const as: Record<string, string> = {};
@@ -123,16 +126,61 @@ describe("proformas", () => {
 
   it("prints totals that respect VAT-exempt lines", async () => {
     const res = await get(`/api/proformas/${ids.proforma}/print`);
-    expect(res.json.totals).toEqual({ subtotal: 1500, discount: 0, vat: 150, total: 1650, amountInWords: "one thousand six hundred fifty birr" });
+    // Mixed VAT rates (15% and 0%), so no single rate for the "VAT 15%" label
+    expect(res.json.totals).toEqual({ subtotal: 1500, discount: 0, vat: 150, vatPercent: null, total: 1650, amountInWords: "one thousand six hundred fifty birr" });
   });
 
-  it("lets drafts be edited, then only Admin approves, once", async () => {
+  it("lets drafts be edited, then only Admin approves, once, recording who approved", async () => {
     const edited = await put(`/api/proformas/${ids.proforma}`, { notes: "Delivery included" }, "Sales");
     expect(edited.json.notes).toBe("Delivery included");
+    expect(edited.json).toMatchObject({ approvedBy: null, approvedAt: null });
     expect((await post(`/api/proformas/${ids.proforma}/approve`, {}, "Sales")).status).toBe(403);
     expect((await post(`/api/proformas/${ids.proforma}/approve`, {})).json.status).toBe("approved");
     expect((await post(`/api/proformas/${ids.proforma}/approve`, {})).status).toBe(400);
     expect((await put(`/api/proformas/${ids.proforma}`, { notes: "late edit" })).status).toBe(400);
+    const approved = await get(`/api/proformas/${ids.proforma}`);
+    expect(approved.json.approvedBy).toEqual({ id: expect.any(Number), username: "admin" });
+    expect(new Date(approved.json.approvedAt).getTime()).toBeGreaterThan(Date.now() - 60_000);
+  });
+
+  it("verifies printed QR codes publicly: a full copy for approved proformas only", async () => {
+    // A second proforma that stays a draft
+    const draft = await post("/api/proformas", { customerId: ids.customer, validity: 15, items: [{ name: "Sticker", quantity: 2, sellingPrice: 50 }] }, "Sales");
+    expect(draft.json.verifyToken).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    const draftCheck = await h.request("GET", `/api/public/proformas/${draft.json.verifyToken}`);
+    expect(draftCheck.status).toBe(200);
+    expect(draftCheck.json).toEqual({ status: "not_approved", number: draft.json.number });
+
+    const { verifyToken } = (await get(`/api/proformas/${ids.proforma}`)).json;
+    const check = await h.request("GET", `/api/public/proformas/${verifyToken}`); // no login
+    expect(check.status).toBe(200);
+    expect(check.headers.get("cache-control")).toBe("no-store");
+    expect(check.json).toMatchObject({
+      status: "valid",
+      number: `TAPI-001-${yy}`,
+      validity: 15,
+      customer: { name: "Hana Bekele", phones: ["0933000000"], customerId: "CID0002" },
+      items: [
+        { name: "Flex Banner", unit: null, quantity: 10, unitPrice: 100, discount: 0, vatPercent: 15, amount: 1000 },
+        { name: "Design fee", quantity: 1, unitPrice: 500, vatPercent: 0, amount: 500 },
+      ],
+      totals: { subtotal: 1500, vat: 150, total: 1650 },
+      amountInWords: "one thousand six hundred fifty birr",
+      terms: expect.stringContaining("50% advance"),
+      notes: "Delivery included",
+      bank: { accountNumber: "1000357045219" },
+      preparedBy: "dani",
+      approvedBy: "admin",
+    });
+    expect(check.json.validUntil).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // Only what is printed: no email, ids or internal fields
+    expect(Object.keys(check.json.customer).sort()).toEqual(["address", "company", "customerId", "name", "phones", "tin"]);
+    expect(check.json).not.toHaveProperty("verifyToken");
+    expect(check.json).not.toHaveProperty("customerId");
+
+    for (const bad of ["nope", "x".repeat(22), "../../etc/passwd"]) {
+      expect((await h.request("GET", `/api/public/proformas/${encodeURIComponent(bad)}`)).status).toBe(404);
+    }
   });
 
   it("filters by status, item, grand total and date", async () => {
@@ -152,6 +200,34 @@ describe("proformas", () => {
     const full = await get(`/api/jobs/${job.json.id}`);
     for (const line of full.json.jobItems) expect(Math.round(line.quantity * line.price)).toBe(Math.round(line.total));
     expect(full.json.proforma.status).toBe("converted");
+
+    const check = await h.request("GET", `/api/public/proformas/${full.json.proforma.verifyToken}`);
+    expect(check.json.status).toBe("accepted");
+  });
+});
+
+describe("proforma QR status", () => {
+  // Issued 16 Oct 2026, 09:00 in Addis Ababa, valid 15 days: valid through the whole of 31 Oct
+  const issued = { status: "approved" as const, date: new Date("2026-10-16T06:00:00Z"), validity: 15 };
+
+  it("stays valid through the last day in Addis Ababa, then expires", () => {
+    expect(validUntilDay(issued.date, 15)).toBe("2026-10-31");
+    expect(verifyStatus(issued, new Date("2026-10-31T20:59:00Z"))).toBe("valid"); // 23:59 Addis
+    expect(verifyStatus(issued, new Date("2026-10-31T21:01:00Z"))).toBe("expired"); // 00:01 on 1 Nov
+  });
+
+  it("reports drafts, accepted proformas and open-ended validity", () => {
+    expect(verifyStatus({ ...issued, status: "draft" })).toBe("not_approved");
+    expect(verifyStatus({ ...issued, status: "converted" }, new Date("2030-01-01"))).toBe("accepted");
+    expect(verifyStatus({ ...issued, validity: null }, new Date("2030-01-01"))).toBe("valid");
+  });
+
+  it("limits checks per IP", async () => {
+    const app = createApp({ db: h.db, config: h.config, loginLimiter: h.loginLimiter, quoteLimiter: h.quoteLimiter, verifyLimiter: new FixedWindowLimiter(1, 60_000), cbeVerifier: async () => ({ success: true }) });
+    expect((await app.request("/api/public/proformas/unknown-token-0000000")).status).toBe(404);
+    const limited = await app.request("/api/public/proformas/unknown-token-0000000");
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toBeTruthy();
   });
 });
 

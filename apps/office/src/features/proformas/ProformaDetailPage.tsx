@@ -68,11 +68,12 @@ export default function ProformaDetailPage() {
             {p.number} <StatusBadge status={p.status} />
           </span>
         }
-        description={`${date(p.date)} · prepared by ${p.preparedBy?.username ?? "—"}`}
+        description={`${date(p.date)} · prepared by ${p.preparedBy?.username ?? "—"}${p.approvedBy ? ` · approved by ${p.approvedBy.username}` : ""}`}
         actions={
           <>
+            {/* Drafts print without the stamp or QR code, marked DRAFT */}
             <Button variant="secondary" icon={Printer} onClick={print}>
-              Print
+              {p.status === "draft" ? "Print draft" : "Print"}
             </Button>
             {p.status === "draft" && can("proforma.edit") && (
               <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>

@@ -1,0 +1,296 @@
+---
+// Opened by the QR code printed on approved proformas: /verify/?id=<token>. The page is static; the script
+// asks the API about the token and fills in a copy of the proforma to compare with the paper.
+import { BadgeCheck, CircleAlert, Clock, Landmark, LoaderCircle, MessageCircle, Phone, RotateCw, ShieldAlert } from "@lucide/astro";
+import Base from "../layouts/Base.astro";
+import { SITE, telHref, whatsappHref } from "../content/site";
+
+const [mainPhone] = SITE.contact.phones;
+const label = "text-xs font-semibold uppercase tracking-wider text-slate-500";
+---
+
+<Base title="Verify a proforma" description={`Check that a ${SITE.name} proforma is genuine, still valid and unchanged.`} noindex>
+  <section class="bg-brand-950 py-12 text-white md:py-16">
+    <div class="container-site">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-accent-300">Proforma check</p>
+      <h1 class="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Verify a proforma</h1>
+      <p class="mt-3 max-w-2xl text-brand-100">
+        Compare this page with your printed proforma. If anything is different — especially the amounts or the bank account — do not pay, and call us.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-10 md:py-14">
+    <div class="container-site max-w-4xl space-y-6">
+      <!-- Result of the check; the script below sets the tone, icon and text -->
+      <div id="v-status" role="status" aria-live="polite" class="flex gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:p-6">
+        <span class="shrink-0 pt-0.5" aria-hidden="true">
+          <LoaderCircle data-icon="loading" class="size-8 text-slate-500 motion-safe:animate-spin" />
+          <BadgeCheck data-icon="good" class="hidden size-8 text-emerald-700" />
+          <BadgeCheck data-icon="info" class="hidden size-8 text-brand-700" />
+          <Clock data-icon="warn" class="hidden size-8 text-amber-700" />
+          <ShieldAlert data-icon="bad" class="hidden size-8 text-rose-700" />
+          <CircleAlert data-icon="neutral" class="hidden size-8 text-slate-600" />
+        </span>
+        <div class="min-w-0">
+          <h2 id="v-title" class="text-xl font-bold text-slate-900">Checking the proforma…</h2>
+          <p id="v-text" class="mt-1 text-slate-700">One moment.</p>
+          <button id="v-retry" type="button" class="mt-3 hidden h-11 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-slate-800 ring-1 ring-slate-300 hover:bg-slate-100">
+            <RotateCw class="size-4" aria-hidden="true" /> Try again
+          </button>
+        </div>
+      </div>
+
+      <noscript>
+        <p class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900">Turn on JavaScript to check this proforma, or call us on {mainPhone}.</p>
+      </noscript>
+
+      <!-- Copy of the proforma, shown for approved ones -->
+      <article id="v-doc" class="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="v-doc-title">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b-4 border-brand-600 p-5 md:p-7">
+          <div>
+            <p class={label}>Proforma invoice</p>
+            <h2 id="v-doc-title" class="mt-1 text-2xl font-extrabold tracking-tight text-brand-950" data-field="number"></h2>
+          </div>
+          <dl class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:text-right">
+            <div><dt class="text-slate-500">Date</dt><dd class="font-semibold" data-field="date"></dd></div>
+            <div><dt class="text-slate-500">Valid until</dt><dd class="font-semibold" data-field="validUntil"></dd></div>
+          </dl>
+        </div>
+
+        <div class="grid gap-6 p-5 md:grid-cols-2 md:p-7">
+          <div>
+            <h3 class={label}>Bill to</h3>
+            <p class="mt-1 text-lg font-bold text-slate-900" data-field="customerName"></p>
+            <ul class="mt-1 space-y-0.5 text-sm text-slate-700" data-list="customer"></ul>
+          </div>
+          <div>
+            <h3 class={label}>Issued by</h3>
+            <p class="mt-1 text-lg font-bold text-slate-900">{SITE.name}</p>
+            <ul class="mt-1 space-y-0.5 text-sm text-slate-700">
+              <li>Prepared by <strong data-field="preparedBy"></strong></li>
+              <li>Approved by <strong data-field="approvedBy"></strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Lines: a table from small tablets up, stacked cards on phones -->
+        <div class="border-t border-slate-200">
+          <table class="hidden w-full text-sm sm:table">
+            <thead class="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-600">
+              <tr>
+                <th scope="col" class="px-4 py-3 md:pl-7">#</th>
+                <th scope="col" class="px-4 py-3">Description</th>
+                <th scope="col" class="px-4 py-3">Unit</th>
+                <th scope="col" class="px-4 py-3 text-right">Qty</th>
+                <th scope="col" class="px-4 py-3 text-right">Unit price</th>
+                <th scope="col" class="px-4 py-3 text-right">Discount</th>
+                <th scope="col" class="px-4 py-3 text-right md:pr-7">Amount</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100" data-list="rows"></tbody>
+          </table>
+          <ol class="divide-y divide-slate-100 sm:hidden" data-list="cards"></ol>
+        </div>
+
+        <div class="flex justify-end border-t border-slate-200 p-5 md:px-7">
+          <dl class="w-full max-w-xs space-y-1.5 text-sm">
+            <div class="flex justify-between gap-4"><dt class="text-slate-600">Subtotal</dt><dd class="tabular-nums" data-field="subtotal"></dd></div>
+            <div class="flex justify-between gap-4"><dt class="text-slate-600" data-field="vatLabel">VAT</dt><dd class="tabular-nums" data-field="vat"></dd></div>
+            <div class="flex justify-between gap-4 border-t border-slate-200 pt-2 text-base font-bold"><dt>Total (ETB)</dt><dd class="tabular-nums" data-field="total"></dd></div>
+          </dl>
+        </div>
+        <p class="border-t border-slate-200 px-5 py-3 text-sm md:px-7" data-show="words">
+          <strong>Amount in words:</strong> <span data-field="words"></span>
+        </p>
+
+        <div class="grid gap-6 border-t border-slate-200 p-5 md:grid-cols-2 md:p-7">
+          <div class="space-y-4 text-sm">
+            <div><h3 class={label}>Payment terms</h3><p class="mt-1 text-slate-800" data-field="terms"></p></div>
+            <div data-show="notes"><h3 class={label}>Notes</h3><p class="mt-1 text-slate-800" data-field="notes"></p></div>
+          </div>
+          <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm">
+            <h3 class="flex items-center gap-2 font-bold text-brand-950"><Landmark class="size-4 text-brand-700" aria-hidden="true" /> Pay only into this account</h3>
+            <p class="mt-2 text-slate-800" data-field="bankName"></p>
+            <p class="text-slate-800" data-field="bank"></p>
+            <p class="mt-1 text-lg font-bold tracking-wide text-brand-950 tabular-nums" data-field="account"></p>
+            <p class="mt-2 text-xs text-slate-600">If your proforma shows a different account, do not pay — call us first.</p>
+          </div>
+        </div>
+      </article>
+
+      <div class="flex flex-col gap-4 rounded-2xl border border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
+        <p class="text-slate-700"><strong class="text-slate-900">Questions about a proforma?</strong> We can confirm it on the phone.</p>
+        <div class="flex flex-wrap gap-2">
+          <a href={telHref(mainPhone)} class="inline-flex h-11 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"><Phone class="size-4" aria-hidden="true" /> {mainPhone}</a>
+          <a href={whatsappHref()} target="_blank" rel="noopener" class="inline-flex h-11 items-center gap-2 rounded-lg bg-emerald-700 px-4 text-sm font-semibold text-white hover:bg-emerald-800"><MessageCircle class="size-4" aria-hidden="true" /> WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  type Line = { name: string; description: string | null; unit: string | null; quantity: number; unitPrice: number; discount: number; amount: number };
+  type Copy = {
+    status: "valid" | "expired" | "accepted";
+    number: string;
+    date: string;
+    validUntil: string | null;
+    customer: { name: string | null; company: string | null; phones: string[]; customerId: string | null; tin: string | null; address: Record<string, string> | null };
+    items: Line[];
+    totals: { subtotal: number; vat: number; vatPercent: number | null; total: number };
+    amountInWords: string | null;
+    terms: string;
+    notes: string | null;
+    bank: { accountName: string; bank: string; accountNumber: string };
+    preparedBy: string | null;
+    approvedBy: string | null;
+    approvedAt: string | null;
+  };
+  type Tone = "loading" | "good" | "info" | "warn" | "bad" | "neutral";
+
+  const TONES: Record<Tone, string> = {
+    loading: "border-slate-200 bg-slate-50",
+    neutral: "border-slate-200 bg-slate-50",
+    good: "border-emerald-200 bg-emerald-50",
+    info: "border-brand-200 bg-brand-50",
+    warn: "border-amber-200 bg-amber-50",
+    bad: "border-rose-200 bg-rose-50",
+  };
+  const TOKEN = /^[A-Za-z0-9_-]{16,64}$/;
+
+  const box = document.getElementById("v-status")!;
+  const doc = document.getElementById("v-doc")!;
+  const retry = document.getElementById("v-retry")!;
+  const money = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const day = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Addis_Ababa", day: "2-digit", month: "short", year: "numeric" });
+  // validUntil is already a calendar day in Addis Ababa (YYYY-MM-DD)
+  const calendarDay = (ymd: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${ymd}T12:00:00Z`));
+
+  function setStatus(tone: Tone, title: string, text: string, canRetry = false) {
+    box.className = `flex gap-4 rounded-2xl border p-5 md:p-6 ${TONES[tone]}`;
+    box.querySelectorAll<SVGElement>("[data-icon]").forEach((icon) => icon.classList.toggle("hidden", icon.dataset.icon !== tone));
+    document.getElementById("v-title")!.textContent = title;
+    document.getElementById("v-text")!.textContent = text;
+    retry.classList.toggle("hidden", !canRetry);
+    retry.classList.toggle("inline-flex", canRetry);
+  }
+
+  const field = (name: string, value: string) => {
+    doc.querySelectorAll(`[data-field="${name}"]`).forEach((el) => (el.textContent = value));
+  };
+  const showIf = (name: string, visible: boolean) => doc.querySelector(`[data-show="${name}"]`)?.classList.toggle("hidden", !visible);
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text = "") => {
+    const node = document.createElement(tag);
+    node.className = className;
+    node.textContent = text;
+    return node;
+  };
+  const addressLine = (a: Record<string, string> | null) =>
+    a ? [a.house && `H.No ${a.house}`, a.woreda && `Woreda ${a.woreda}`, a.subcity, a.city, a.region].filter(Boolean).join(", ") : "";
+
+  function render(p: Copy) {
+    const until = p.validUntil ? calendarDay(p.validUntil) : null;
+    const headline = {
+      valid: ["good", "Genuine proforma", `${p.number} was issued by TEAM ADVERT PLC${until ? ` and is valid until ${until}` : ""}. Check that your copy matches the details below.`],
+      expired: ["warn", "Genuine, but expired", `${p.number} was valid until ${until ?? "its expiry date"}. Prices may have changed — ask us for an updated proforma.`],
+      accepted: ["info", "Genuine — order placed", `${p.number} was accepted and is now a job order. Check that your copy matches the details below.`],
+    } as const;
+    const [tone, title, text] = headline[p.status];
+    setStatus(tone, title, text);
+
+    field("number", p.number);
+    field("date", day.format(new Date(p.date)));
+    field("validUntil", until ?? "—");
+    field("customerName", p.customer.name ?? "—");
+    field("preparedBy", p.preparedBy ?? "—");
+    field("approvedBy", `${p.approvedBy ?? "—"}${p.approvedAt ? ` on ${day.format(new Date(p.approvedAt))}` : ""}`);
+
+    const customer = doc.querySelector('[data-list="customer"]')!;
+    const details = [
+      p.customer.company,
+      p.customer.phones.length ? `Tel: ${p.customer.phones.join(", ")}` : null,
+      p.customer.customerId ? `Customer ID #${p.customer.customerId}` : null,
+      p.customer.tin ? `TIN: ${p.customer.tin}` : null,
+      addressLine(p.customer.address) || null,
+    ];
+    customer.replaceChildren(...details.filter((d): d is string => !!d).map((d) => el("li", "", d)));
+
+    const rows = doc.querySelector('[data-list="rows"]')!;
+    const cards = doc.querySelector('[data-list="cards"]')!;
+    rows.replaceChildren(
+      ...p.items.map((l, i) => {
+        const tr = el("tr", "align-top");
+        const name = el("td", "px-4 py-3");
+        name.append(el("span", "font-semibold text-slate-900", l.name));
+        if (l.description) name.append(el("span", "block text-slate-500", l.description));
+        tr.append(
+          el("td", "px-4 py-3 text-slate-500 md:pl-7", String(i + 1)),
+          name,
+          el("td", "px-4 py-3", l.unit ?? ""),
+          el("td", "px-4 py-3 text-right tabular-nums", String(l.quantity)),
+          el("td", "px-4 py-3 text-right tabular-nums", money.format(l.unitPrice)),
+          el("td", "px-4 py-3 text-right tabular-nums", l.discount ? money.format(l.discount) : "—"),
+          el("td", "px-4 py-3 text-right font-semibold tabular-nums md:pr-7", money.format(l.amount)),
+        );
+        return tr;
+      }),
+    );
+    cards.replaceChildren(
+      ...p.items.map((l, i) => {
+        const li = el("li", "flex gap-3 p-4");
+        const body = el("div", "min-w-0 flex-1");
+        body.append(el("p", "font-semibold text-slate-900", l.name));
+        if (l.description) body.append(el("p", "text-sm text-slate-500", l.description));
+        const maths = `${l.quantity}${l.unit ? ` ${l.unit}` : ""} × ${money.format(l.unitPrice)}${l.discount ? ` − ${money.format(l.discount)} discount` : ""}`;
+        body.append(el("p", "mt-1 text-sm text-slate-600 tabular-nums", maths));
+        li.append(el("span", "text-sm text-slate-500", String(i + 1)), body, el("span", "font-semibold tabular-nums", money.format(l.amount)));
+        return li;
+      }),
+    );
+
+    field("subtotal", money.format(p.totals.subtotal));
+    field("vatLabel", p.totals.vatPercent === null ? "VAT" : `VAT ${p.totals.vatPercent}%`);
+    field("vat", money.format(p.totals.vat));
+    field("total", money.format(p.totals.total));
+    field("words", p.amountInWords ? `${p.amountInWords} only` : "");
+    showIf("words", !!p.amountInWords);
+    field("terms", p.terms);
+    field("notes", p.notes ?? "");
+    showIf("notes", !!p.notes);
+    field("bankName", p.bank.accountName);
+    field("bank", p.bank.bank);
+    field("account", p.bank.accountNumber);
+    doc.classList.remove("hidden");
+  }
+
+  const notFound = () =>
+    setStatus("bad", "We couldn't find this proforma", "This code doesn't match any proforma issued by TEAM ADVERT PLC. The document may be fake or altered — please contact us before paying.");
+
+  async function check() {
+    doc.classList.add("hidden");
+    const id = new URLSearchParams(location.search).get("id") ?? "";
+    if (!id) return setStatus("neutral", "No proforma code", "Scan the QR code printed on your proforma to open this page with its code.");
+    if (!TOKEN.test(id)) return notFound();
+
+    setStatus("loading", "Checking the proforma…", "One moment.");
+    let res: Response;
+    try {
+      res = await fetch(`/api/public/proformas/${encodeURIComponent(id)}`, { cache: "no-store" });
+    } catch {
+      return setStatus("neutral", "We couldn't check right now", "Check your internet connection and try again, or call us.", true);
+    }
+    if (res.status === 404) return notFound();
+    if (res.status === 429) return setStatus("neutral", "Too many checks", "Please wait a few minutes and try again.", true);
+    const body = await res.json().catch(() => null);
+    if (!res.ok || !body) return setStatus("neutral", "We couldn't check right now", "Something went wrong on our side. Try again, or call us.", true);
+    if (body.status === "not_approved") {
+      return setStatus("bad", "Not approved", `${body.number} has not been approved by TEAM ADVERT PLC, so it is not a valid proforma. Please contact us before paying.`);
+    }
+    render(body as Copy);
+  }
+
+  retry.addEventListener("click", check);
+  check();
+</script>

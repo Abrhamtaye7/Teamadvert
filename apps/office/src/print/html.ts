@@ -65,11 +65,13 @@ export function openPrint(title: string, body: SafeHtml, extraCss = ""): boolean
   return true;
 }
 
+// Printed pages get their top/bottom margin from @page, so a document that runs onto a second sheet keeps
+// the margin there too (padding on .page would only apply to the first sheet).
 const BASE_CSS = `
-  @page { size: A4; margin: 0; }
+  @page { size: A4; margin: 12mm 0; }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: #1e293b; font-size: 12px; background: #e2e8f0; }
-  .page { width: 210mm; min-height: 297mm; margin: 12px auto; padding: 18mm 16mm; background: #fff; position: relative; overflow: hidden; }
+  .page { width: 210mm; min-height: 297mm; margin: 12px auto; padding: 12mm 16mm; background: #fff; position: relative; overflow: hidden; }
   h1, h2, h3 { margin: 0; }
   table { width: 100%; border-collapse: collapse; }
   th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: #475569; background: #f1f5f9; }
@@ -82,7 +84,8 @@ const BASE_CSS = `
   .toolbar button { background: #1a73e8; color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
   @media print {
     body { background: #fff; }
-    .page { margin: 0; box-shadow: none; }
+    /* 297mm minus the @page margins, less 1mm so rounding can't spill an empty second sheet */
+    .page { margin: 0; box-shadow: none; min-height: 272mm; padding-top: 0; padding-bottom: 0; overflow: visible; }
     .no-print { display: none; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }

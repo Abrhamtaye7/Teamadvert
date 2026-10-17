@@ -40,7 +40,7 @@ describe("POST /api/public/quote", () => {
   });
 
   it("limits requests per IP", async () => {
-    const app = createApp({ db: h.db, config: h.config, loginLimiter: h.loginLimiter, quoteLimiter: new FixedWindowLimiter(2, 60_000), cbeVerifier: async () => ({ success: true }) });
+    const app = createApp({ db: h.db, config: h.config, loginLimiter: h.loginLimiter, quoteLimiter: new FixedWindowLimiter(2, 60_000), verifyLimiter: h.verifyLimiter, cbeVerifier: async () => ({ success: true }) });
     const send = () => app.request("/api/public/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(quote) });
     await send();
     await send();

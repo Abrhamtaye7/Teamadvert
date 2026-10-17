@@ -59,7 +59,7 @@ async function withRelations(db: Db | Tx, rows: JobRow[]) {
     db.select().from(payments).where(inArray(payments.jobId, ids)).orderBy(desc(payments.createdAt)),
     db.select().from(customers).where(inArray(customers.id, rows.map((r) => r.customerId))),
     proformaIds.length ? db.select().from(proformas).where(inArray(proformas.id, proformaIds)) : [],
-    loadPublicUsers(db, rows.map((r) => r.createdById)),
+    loadPublicUsers(db, rows.flatMap((r) => [r.createdById, r.adminApprovedById])),
   ]);
   const linesBy = groupBy(lines, (l) => l.jobId);
   const paidBy = groupBy(paid, (p) => p.jobId);
@@ -72,6 +72,7 @@ async function withRelations(db: Db | Tx, rows: JobRow[]) {
     customer: customerBy.get(j.customerId) ?? null,
     proforma: j.proformaId ? (proformaBy.get(j.proformaId) ?? null) : null,
     createdBy: j.createdById ? (people.get(j.createdById) ?? null) : null,
+    adminApprovedBy: j.adminApprovedById ? (people.get(j.adminApprovedById) ?? null) : null,
   }));
 }
 

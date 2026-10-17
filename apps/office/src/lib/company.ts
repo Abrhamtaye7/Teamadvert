@@ -1,4 +1,7 @@
 // Company details printed on proformas and job orders. Edit here to change them everywhere.
+// Bank account and default payment terms live in packages/shared/company.ts: the public verify page shows them too.
+import { COMPANY_BANK, PROFORMA_TERMS } from "@teamadvert/shared/company";
+
 export const COMPANY = {
   name: "TEAM ADVERT PLC",
   city: "Addis Ababa, Ethiopia",
@@ -6,10 +9,9 @@ export const COMPANY = {
   phones: ["+251 98 813 9999", "+251 93 805 6657"],
   email: "info@teamadvertplc.com",
   website: "teamadvertplc.com",
-  bank: { accountName: "Team Advert PLC", bank: "Commercial Bank of Ethiopia (CBE)", accountNumber: "1000357045219" },
-  defaultTerms: "50% advance on the job starting date and 50% on the job completion date.",
+  bank: COMPANY_BANK,
+  defaultTerms: PROFORMA_TERMS,
   proformaDisclaimer: "This is a proforma invoice. No payment is due until a final invoice is issued.",
-  approvedBy: "Abrham T.",
   defaultValidityDays: 15,
   vatPercent: 15,
 };

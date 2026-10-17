@@ -1,6 +1,7 @@
 // Ported from legacy/backend/prisma/schema.prisma to PostgreSQL. Columns are camelCase in code and
 // snake_case in the database (drizzle `casing: "snake_case"`). Money is NUMERIC(14,2) read as JS numbers.
 // `serial` ids (not identity columns) keep the DDL compatible with older PostgreSQL versions on shared hosting.
+import { randomBytes } from "node:crypto";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -309,6 +310,16 @@ export const proformas = pgTable(
     bankInfoSnapshot: jsonb().$type<Record<string, unknown>>(),
     customerSnapshot: jsonb().$type<Record<string, unknown>>(),
     status: proformaStatusEnum().notNull().default("draft"),
+    approvedById: integer().references(() => users.id),
+    approvedAt: ts(),
+    /**
+     * Secret in the printed QR code; the public verify page looks the proforma up by it. Random (128 bits),
+     * never the proforma number, so nobody can walk through other customers' proformas.
+     */
+    verifyToken: varchar({ length: 32 })
+      .notNull()
+      .unique()
+      .$defaultFn(() => randomBytes(16).toString("base64url")),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

@@ -47,5 +47,6 @@ export function amountToWords(amount: number): string {
     num = Math.floor(num / 1000);
   }
   const birr = chunks.join(" ") || "zero";
-  return `${birr} birr${cents ? ` and ${chunkToWords(cents)} cents` : ""}`;
+  // 1 birr = 100 santim
+  return `${birr} birr${cents ? ` and ${chunkToWords(cents)} santim` : ""}`;
 }

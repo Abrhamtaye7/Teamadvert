@@ -1,5 +1,6 @@
 import { and, count, desc, eq, exists, gte, inArray, lt, lte, or, sql, type SQL } from "drizzle-orm";
 import { Hono } from "hono";
+import { COMPANY_BANK, PROFORMA_TERMS } from "@teamadvert/shared/company";
 import { proformaCreateSchema, proformaSearchSchema, proformaUpdateSchema } from "@teamadvert/shared/schemas";
 import {
   customers,
@@ -15,10 +16,11 @@ import {
 } from "@teamadvert/db";
 import { recordAudit } from "../lib/audit";
 import { customerSnapshot, resolveCustomer } from "../lib/customers";
-import { badRequest, idParam, notFound, readJson } from "../lib/errors";
-import { amountToWords, proformaLineTotals, round2, sum } from "../lib/money";
+import { ApiError, badRequest, idParam, notFound, readJson } from "../lib/errors";
+import { amountToWords, DEFAULT_VAT_PERCENT, proformaLineTotals, round2, sum } from "../lib/money";
 import { notify } from "../lib/notify";
 import { contains, dateRange, groupBy, indexBy, numberParam, pagination } from "../lib/query";
+import { clientIp } from "../lib/request";
 import { loadPublicUsers } from "../lib/users";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { ROLES, type AppEnv } from "../types";
@@ -53,7 +55,7 @@ async function withRelations(db: Db | Tx, rows: ProformaRow[]) {
   const [lines, customerRows, people] = await Promise.all([
     db.select().from(proformaItems).where(inArray(proformaItems.proformaId, ids)).orderBy(proformaItems.id),
     db.select().from(customers).where(inArray(customers.id, rows.map((r) => r.customerId))),
-    loadPublicUsers(db, rows.map((r) => r.preparedById)),
+    loadPublicUsers(db, rows.flatMap((r) => [r.preparedById, r.approvedById])),
   ]);
   const linesBy = groupBy(lines, (l) => l.proformaId);
   const customerBy = indexBy(customerRows, (x) => x.id);
@@ -62,7 +64,24 @@ async function withRelations(db: Db | Tx, rows: ProformaRow[]) {
     customer: customerBy.get(p.customerId) ?? null,
     items: linesBy.get(p.id) ?? [],
     preparedBy: people.get(p.preparedById) ?? null,
+    approvedBy: p.approvedById ? (people.get(p.approvedById) ?? null) : null,
   }));
+}
+
+/**
+ * Totals as printed: line amounts are quantity × price − discount (VAT shown once, under the lines), so the
+ * subtotal is their sum. `vatPercent` is set when every line has the same rate, for the "VAT 15%" label.
+ */
+function documentTotals(items: (typeof proformaItems.$inferSelect)[]) {
+  const lines = items.map((line) => proformaLineTotals(line));
+  const rates = new Set(lines.map((l) => l.vatPercent));
+  return {
+    subtotal: sum(lines.map((l) => l.base - l.discount)),
+    discount: sum(lines.map((l) => l.discount)),
+    vat: sum(lines.map((l) => l.vat)),
+    vatPercent: rates.size === 1 ? [...rates][0] : null,
+    total: sum(items.map((l) => l.total)),
+  };
 }
 
 async function loadProforma(db: Db | Tx, id: number) {
@@ -125,17 +144,7 @@ export const proformaRoutes = new Hono<AppEnv>()
 
   .get("/:id/print", async (c) => {
     const [proforma] = await withRelations(c.var.db, [await loadProforma(c.var.db, idParam(c))]);
-    const lines = proforma.items.map((line) => proformaLineTotals(line));
-    return c.json({
-      proforma,
-      totals: {
-        subtotal: sum(lines.map((l) => l.base)),
-        discount: sum(lines.map((l) => l.discount)),
-        vat: sum(lines.map((l) => l.vat)),
-        total: sum(proforma.items.map((l) => l.total)),
-        amountInWords: proforma.amountInWords,
-      },
-    });
+    return c.json({ proforma, totals: { ...documentTotals(proforma.items), amountInWords: proforma.amountInWords } });
   })
 
   .post("/", requireRole(ROLES.Admin, ROLES.Sales, ROLES.Designer), async (c) => {
@@ -214,7 +223,7 @@ export const proformaRoutes = new Hono<AppEnv>()
       // Conditional update: two admins approving at once can't both succeed
       const [row] = await tx
         .update(proformas)
-        .set({ status: "approved" })
+        .set({ status: "approved", approvedById: user.id, approvedAt: new Date() })
         .where(and(eq(proformas.id, id), eq(proformas.status, "draft")))
         .returning();
       if (!row) throw badRequest("Proforma already processed");
@@ -276,3 +285,87 @@ export function jobLinesFromProforma(jobId: number, lines: (typeof proformaItems
     total: l.total,
   }));
 }
+
+// ---------- Public QR verification ----------
+
+const TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,64}$/;
+const addisDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Addis_Ababa" }).format(d);
+
+/** Last valid day as YYYY-MM-DD in Addis Ababa: the "Valid until" date on the printout. */
+export function validUntilDay(date: Date, validity: number | null) {
+  return validity ? addisDay(new Date(date.getTime() + validity * 86_400_000)) : null;
+}
+
+export type VerifyStatus = "valid" | "expired" | "accepted" | "not_approved";
+
+/** What a scanned QR code reports. A proforma stays valid through the whole of its last day. */
+export function verifyStatus(p: Pick<ProformaRow, "status" | "date" | "validity">, now = new Date()): VerifyStatus {
+  if (p.status === "draft") return "not_approved";
+  if (p.status === "converted") return "accepted";
+  const until = validUntilDay(p.date, p.validity);
+  if (p.status === "expired" || (until !== null && addisDay(now) > until)) return "expired";
+  return "valid";
+}
+
+type Snapshot = { name?: string; company?: string | null; phones?: string[] | null; tin?: string | null; customerId?: string; address?: unknown };
+
+/**
+ * Behind the QR code printed on approved proformas: anyone holding the paper can confirm it is genuine and
+ * that nobody changed the prices or the bank account. Returns what the paper shows, nothing more (no email,
+ * no internal notes about the customer). Drafts are printed without a QR code and reveal only "not approved".
+ */
+export const publicProformaRoutes = new Hono<AppEnv>().get("/:token", async (c) => {
+  const { db, verifyLimiter } = c.var;
+  const retryAfter = verifyLimiter.hit(clientIp(c) ?? "unknown");
+  if (retryAfter) {
+    c.header("Retry-After", String(retryAfter));
+    throw new ApiError(429, "Too many checks. Please try again later.");
+  }
+  const token = c.req.param("token");
+  // Malformed and unknown tokens get the same answer, so responses don't hint at which tokens exist
+  if (!TOKEN_PATTERN.test(token)) throw notFound("Proforma");
+  const [row] = await db.select().from(proformas).where(eq(proformas.verifyToken, token));
+  if (!row) throw notFound("Proforma");
+
+  const status = verifyStatus(row);
+  if (status === "not_approved") return c.json({ status, number: row.number });
+
+  const [full] = await withRelations(db, [row]);
+  const snap = (row.customerSnapshot ?? {}) as Snapshot;
+  return c.json({
+    status,
+    number: row.number,
+    date: row.date,
+    validity: row.validity,
+    validUntil: validUntilDay(row.date, row.validity),
+    customer: {
+      name: snap.name ?? full.customer?.name ?? null,
+      company: snap.company ?? null,
+      phones: snap.phones ?? [],
+      customerId: snap.customerId ?? full.customer?.customerId ?? null,
+      tin: snap.tin ?? null,
+      address: snap.address ?? null,
+    },
+    items: full.items.map((l) => {
+      const t = proformaLineTotals(l);
+      return {
+        name: l.name,
+        description: l.description,
+        unit: l.unit,
+        quantity: l.quantity,
+        unitPrice: l.sellingPrice,
+        discount: t.discount,
+        vatPercent: l.vatPercent ?? DEFAULT_VAT_PERCENT,
+        amount: round2(t.base - t.discount),
+      };
+    }),
+    totals: documentTotals(full.items),
+    amountInWords: row.amountInWords,
+    terms: row.terms || PROFORMA_TERMS,
+    notes: row.notes,
+    bank: COMPANY_BANK,
+    preparedBy: full.preparedBy?.username ?? null,
+    approvedBy: full.approvedBy?.username ?? null,
+    approvedAt: row.approvedAt,
+  });
+});

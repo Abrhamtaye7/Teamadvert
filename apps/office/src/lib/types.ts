@@ -65,14 +65,19 @@ export type Proforma = {
   customerSnapshot: Record<string, unknown> | null;
   status: ProformaStatus;
   createdAt: string;
+  approvedAt: string | null;
+  /** Secret for the QR code printed on approved proformas */
+  verifyToken: string;
   customer?: Customer | null;
   items?: ProformaLine[];
   preparedBy?: PublicUser | null;
+  approvedBy?: PublicUser | null;
 };
 
 export type ProformaPrint = {
   proforma: Proforma & { items: ProformaLine[] };
-  totals: { subtotal: number; discount: number; vat: number; total: number; amountInWords: string | null };
+  /** subtotal = sum of line amounts (qty × price − discount); vatPercent is null when lines mix rates */
+  totals: { subtotal: number; discount: number; vat: number; vatPercent: number | null; total: number; amountInWords: string | null };
 };
 
 export type JobStatus = "pending_approval" | "approved" | "in_progress" | "completed" | "finance_review" | "closed";
@@ -123,6 +128,7 @@ export type Job = {
   customer?: Customer | null;
   proforma?: Proforma | null;
   createdBy?: PublicUser | null;
+  adminApprovedBy?: PublicUser | null;
 };
 
 export type CustomerDetail = Customer & {
