@@ -10,7 +10,7 @@ import { COMPANY } from "../../lib/company";
 import { amount } from "../../lib/format";
 import { useCreateProforma, useUpdateProforma, type ProformaPayload } from "../../lib/queries";
 import { proformaTotals } from "../../lib/totals";
-import type { Proforma } from "../../lib/types";
+import type { Customer, Proforma } from "../../lib/types";
 
 const fromProforma = (p: Proforma): EditableLine[] =>
   (p.items ?? []).map((l) =>
@@ -39,7 +39,20 @@ function Section({ title, step, children }: { title: string; step: number; child
 }
 
 /** Create a proforma, or edit a draft (the customer can't change after creation). */
-export function ProformaFormDialog({ open, onClose, proforma, onSaved }: { open: boolean; onClose: () => void; proforma?: Proforma; onSaved?: (p: Proforma) => void }) {
+/** Create a proforma (optionally for a given customer, e.g. from the customer's page), or edit a draft. */
+export function ProformaFormDialog({
+  open,
+  onClose,
+  proforma,
+  customer,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  proforma?: Proforma;
+  customer?: Customer;
+  onSaved?: (p: Proforma) => void;
+}) {
   const create = useCreateProforma();
   const update = useUpdateProforma(proforma?.id ?? 0);
   const pending = create.isPending || update.isPending;
@@ -77,13 +90,23 @@ export function ProformaFormDialog({ open, onClose, proforma, onSaved }: { open:
         </>
       }
     >
-      <Form proforma={proforma} error={error ? errorMessage(error) : null} onSubmit={submit} />
+      <Form proforma={proforma} presetCustomer={customer} error={error ? errorMessage(error) : null} onSubmit={submit} />
     </Dialog>
   );
 }
 
-function Form({ proforma, error, onSubmit }: { proforma?: Proforma; error: string | null; onSubmit: (payload: ProformaPayload) => void }) {
-  const [customer, setCustomer] = useState<CustomerChoice>({ mode: "existing", customer: null });
+function Form({
+  proforma,
+  presetCustomer,
+  error,
+  onSubmit,
+}: {
+  proforma?: Proforma;
+  presetCustomer?: Customer;
+  error: string | null;
+  onSubmit: (payload: ProformaPayload) => void;
+}) {
+  const [customer, setCustomer] = useState<CustomerChoice>({ mode: "existing", customer: presetCustomer ?? null });
   const [lines, setLines] = useState<EditableLine[]>(() => (proforma ? fromProforma(proforma) : [newLine()]));
   const [validity, setValidity] = useState(String(proforma?.validity ?? COMPANY.defaultValidityDays));
   const [notes, setNotes] = useState(proforma?.notes ?? "");
@@ -116,7 +139,17 @@ function Form({ proforma, error, onSubmit }: { proforma?: Proforma; error: strin
 
       {!proforma && (
         <Section step={1} title="Customer">
-          <CustomerPicker value={customer} onChange={setCustomer} />
+          {presetCustomer ? (
+            <div className="rounded-lg border border-line bg-surface-muted/50 px-3 py-2.5">
+              <p className="font-medium">{presetCustomer.name}</p>
+              <p className="text-xs text-ink-subtle">
+                {presetCustomer.customerId}
+                {presetCustomer.company ? ` · ${presetCustomer.company}` : ""}
+              </p>
+            </div>
+          ) : (
+            <CustomerPicker value={customer} onChange={setCustomer} />
+          )}
         </Section>
       )}
 
@@ -139,8 +172,8 @@ function Form({ proforma, error, onSubmit }: { proforma?: Proforma; error: strin
       <div className="rounded-lg bg-surface-muted p-4">
         <dl className="space-y-1 text-sm">
           <div className="flex justify-between"><dt className="text-ink-muted">Subtotal</dt><dd className="tabular-nums">{amount(totals.subtotal)}</dd></div>
-          {totals.discount > 0 && <div className="flex justify-between"><dt className="text-ink-muted">Discount</dt><dd className="tabular-nums">−{amount(totals.discount)}</dd></div>}
-          <div className="flex justify-between"><dt className="text-ink-muted">VAT</dt><dd className="tabular-nums">{amount(totals.vat)}</dd></div>
+          {totals.discount > 0 && <div className="flex justify-between text-xs text-ink-subtle"><dt>Line discounts (included)</dt><dd className="tabular-nums">{amount(totals.discount)}</dd></div>}
+          <div className="flex justify-between"><dt className="text-ink-muted">{totals.vatPercent === null ? "VAT" : `VAT ${totals.vatPercent}%`}</dt><dd className="tabular-nums">{amount(totals.vat)}</dd></div>
           <div className="flex justify-between border-t border-line pt-2 text-base font-semibold"><dt>Total</dt><dd className="tabular-nums">ETB {amount(totals.total)}</dd></div>
         </dl>
       </div>

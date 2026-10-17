@@ -11,7 +11,7 @@ import { errorMessage } from "../../lib/api";
 import { COMPANY } from "../../lib/company";
 import { amount, date, money, phones } from "../../lib/format";
 import { fetchProformaPrint, useApproveProforma, useConvertProforma, useProforma } from "../../lib/queries";
-import { proformaTotals } from "../../lib/totals";
+import { lineTotal, proformaTotals } from "../../lib/totals";
 import { printProforma } from "../../print/documents";
 import { ProformaFormDialog } from "./ProformaForm";
 
@@ -110,14 +110,15 @@ export default function ProformaDetailPage() {
                       {l.discount ? ` − ${amount(l.discount)} discount` : ""} · VAT {l.vatPercent ?? COMPANY.vatPercent}%
                     </p>
                   </div>
-                  <p className="font-medium tabular-nums">{amount(l.total)}</p>
+                  {/* Before VAT, like the printout */}
+                  <p className="font-medium tabular-nums">{amount(lineTotal({ quantity: l.quantity, sellingPrice: l.sellingPrice, discount: l.discount ?? 0, vatPercent: l.vatPercent ?? undefined }).net)}</p>
                 </li>
               ))}
             </ul>
             <dl className="space-y-1 border-t border-line px-4 py-3 text-sm md:px-5">
               <div className="flex justify-between"><dt className="text-ink-muted">Subtotal</dt><dd className="tabular-nums">{amount(totals.subtotal)}</dd></div>
-              {totals.discount > 0 && <div className="flex justify-between"><dt className="text-ink-muted">Discount</dt><dd className="tabular-nums">−{amount(totals.discount)}</dd></div>}
-              <div className="flex justify-between"><dt className="text-ink-muted">VAT</dt><dd className="tabular-nums">{amount(totals.vat)}</dd></div>
+              {totals.discount > 0 && <div className="flex justify-between text-xs text-ink-subtle"><dt>Line discounts (included)</dt><dd className="tabular-nums">{amount(totals.discount)}</dd></div>}
+              <div className="flex justify-between"><dt className="text-ink-muted">{totals.vatPercent === null ? "VAT" : `VAT ${totals.vatPercent}%`}</dt><dd className="tabular-nums">{amount(totals.vat)}</dd></div>
               <div className="flex justify-between pt-1 text-base font-semibold"><dt>Total</dt><dd className="tabular-nums">{money(totals.total)}</dd></div>
             </dl>
             {p.amountInWords && <p className="border-t border-line px-4 py-3 text-sm text-ink-muted md:px-5">In words: {p.amountInWords} only</p>}

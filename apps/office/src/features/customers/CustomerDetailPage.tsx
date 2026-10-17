@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Link, useParams } from "react-router";
-import { Pencil, Printer, Send } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router";
+import { FilePlus, Pencil, Printer, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useCan } from "../../auth/permissions";
 import { Button } from "../../components/ui/Button";
@@ -11,6 +11,7 @@ import { errorMessage } from "../../lib/api";
 import { date, dateTime, money } from "../../lib/format";
 import { fetchCustomerProfile, useAddCustomerNote, useCustomer } from "../../lib/queries";
 import { printCustomerStatement } from "../../print/documents";
+import { ProformaFormDialog } from "../proformas/ProformaForm";
 import { CustomerFormDialog } from "./CustomerForm";
 
 type Tab = "jobs" | "proformas" | "payments" | "notes" | "prices";
@@ -35,6 +36,8 @@ export default function CustomerDetailPage() {
   const can = useCan();
   const [tab, setTab] = useState<Tab>("jobs");
   const [editing, setEditing] = useState(false);
+  const [quoting, setQuoting] = useState(false);
+  const navigate = useNavigate();
   const { data: c, isLoading, error, refetch } = useCustomer(id);
 
   if (isLoading) return <PageLoader />;
@@ -66,8 +69,13 @@ export default function CustomerDetailPage() {
               Print profile
             </Button>
             {can("customer.edit") && (
-              <Button icon={Pencil} onClick={() => setEditing(true)}>
+              <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>
                 Edit
+              </Button>
+            )}
+            {can("proforma.create") && (
+              <Button icon={FilePlus} onClick={() => setQuoting(true)}>
+                New proforma
               </Button>
             )}
           </>
@@ -206,6 +214,7 @@ export default function CustomerDetailPage() {
       </div>
 
       <CustomerFormDialog open={editing} onClose={() => setEditing(false)} customer={c} />
+      <ProformaFormDialog open={quoting} onClose={() => setQuoting(false)} customer={c} onSaved={(p) => navigate(`/proformas/${p.id}`)} />
     </>
   );
 }

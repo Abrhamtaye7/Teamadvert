@@ -31,7 +31,10 @@ describe("totals (must match the API)", () => {
     expect(lineTotal({ quantity: 10, sellingPrice: 100 }).total).toBe(1150);
     expect(lineTotal({ quantity: 10, sellingPrice: 100, discount: 100 }).total).toBe(1035);
     expect(lineTotal({ quantity: 1, sellingPrice: 500, vatPercent: 0 }).total).toBe(500);
-    expect(proformaTotals([{ quantity: 10, sellingPrice: 100 }, { quantity: 1, sellingPrice: 500, vatPercent: 0 }])).toEqual({ subtotal: 1500, discount: 0, vat: 150, total: 1650 });
+    expect(proformaTotals([{ quantity: 10, sellingPrice: 100 }, { quantity: 1, sellingPrice: 500, vatPercent: 0 }])).toEqual({ subtotal: 1500, discount: 0, vat: 150, vatPercent: null, total: 1650 });
+    // Like the printout: subtotal is after line discounts, then one "VAT 15%" line
+    expect(proformaTotals([{ quantity: 10, sellingPrice: 100, discount: 100 }])).toEqual({ subtotal: 900, discount: 100, vat: 135, vatPercent: 15, total: 1035 });
+    expect(lineTotal({ quantity: 1, sellingPrice: 38000, discount: 1500 }).net).toBe(36500);
   });
 
   it("computes job balances and never goes negative", () => {

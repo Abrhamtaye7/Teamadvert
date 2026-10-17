@@ -75,7 +75,7 @@ export function LineItemsEditor({ lines, onChange, withTax }: { lines: EditableL
 
   const total = (l: EditableLine) =>
     withTax
-      ? lineTotal({ quantity: n(l.quantity), sellingPrice: n(l.price), discount: n(l.discount), vatPercent: l.vatPercent.trim() === "" ? undefined : n(l.vatPercent) }).total
+      ? lineTotal({ quantity: n(l.quantity), sellingPrice: n(l.price), discount: n(l.discount), vatPercent: l.vatPercent.trim() === "" ? undefined : n(l.vatPercent) }).net
       : round2(n(l.quantity) * n(l.price));
 
   return (
@@ -91,7 +91,11 @@ export function LineItemsEditor({ lines, onChange, withTax }: { lines: EditableL
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide text-ink-subtle">Line {index + 1}</span>
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold tabular-nums">ETB {amount(total(line))}</span>
+              {/* Proforma lines show the amount before VAT, like the printout; VAT is added once in the totals */}
+              <span className="text-sm font-semibold tabular-nums">
+                ETB {amount(total(line))}
+                {withTax && <span className="ml-1 text-xs font-normal text-ink-subtle">+ VAT</span>}
+              </span>
               <button
                 type="button"
                 aria-label={`Remove line ${index + 1}`}
