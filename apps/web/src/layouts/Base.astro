@@ -36,10 +36,22 @@ const jsonLd = {
     "@type": "PostalAddress",
     streetAddress: c.address,
     addressLocality: c.city,
+    addressRegion: c.city,
     addressCountry: "ET",
   },
+  // Same pin as the Contact page map, so Google can match the site to the Maps listing
+  geo: { "@type": "GeoCoordinates", latitude: c.map.lat, longitude: c.map.lng },
+  ...(c.hours ? { openingHours: c.hours } : {}),
   sameAs: Object.values(SITE.social).filter(Boolean),
   areaServed: "Ethiopia",
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Services",
+    itemListElement: SITE.services.map((s) => ({
+      "@type": "Offer",
+      itemOffered: { "@type": "Service", name: s.title, description: s.summary, url: new URL(`/services/#${s.slug}`, SITE.url).href },
+    })),
+  },
 };
 ---
 
