@@ -1,67 +1,64 @@
 ---
 import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "@lucide/astro";
 import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
 import QuoteForm from "../components/QuoteForm.astro";
 import { SITE, fullAddress, mapEmbedUrl, ready, telegramHref, telHref, whatsappHref } from "../content/site";
 
 const c = SITE.contact;
 const hours = ready(c.hours);
-const card = "flex items-center gap-4 rounded-2xl border border-slate-200 p-5";
+const card = "flex items-center gap-4 rounded-3xl bg-white p-5 ring-1 ring-slate-200 transition duration-300";
+const icon = "flex size-12 shrink-0 items-center justify-center rounded-full";
 ---
 
 <Base title="Contact & quotes" description={`Contact ${SITE.name} on ${c.phones[0]} or visit us at ${fullAddress()}. Request a free quote for signage, banners, branding and printing.`}>
-  <section class="relative overflow-hidden bg-brand-950 py-16 text-white md:py-24"><div data-parallax="0.2" class="pointer-events-none absolute -right-32 -top-32 size-[28rem] rounded-full bg-brand-600/40 blur-3xl" aria-hidden="true"></div>
-    <div class="container-site relative">
-      <h1 class="fade-up relative text-4xl font-extrabold tracking-tight sm:text-5xl" style="--delay:0s">Let's talk about your project</h1>
-      <p class="fade-up relative mt-3 max-w-2xl text-lg text-brand-100" style="--delay:.2s">Call, WhatsApp, Telegram or send the form — we'll get back to you with a proforma.</p>
-    </div>
-  </section>
+  <PageHero eyebrow="Contact & quotes" title="Let's talk about" highlight="your project" intro="Call, WhatsApp, Telegram or send the form — we'll get back to you with a proforma." />
 
   <section class="py-14 md:py-20">
     <div class="container-site grid gap-10 lg:grid-cols-[1fr_1.4fr]">
       <div class="reveal space-y-4">
         <div class={card}>
-          <span class="rounded-xl bg-brand-50 p-3 text-brand-600"><Phone class="size-6" /></span>
+          <span class={`${icon} bg-brand-50 text-brand-700`}><Phone class="size-5" aria-hidden="true" /></span>
           <span>
             <span class="block text-sm text-slate-500">Call us</span>
-            {c.phones.map((p) => <a href={telHref(p)} class="block font-semibold hover:text-brand-700">{p}</a>)}
+            {c.phones.map((p) => <a href={telHref(p)} class="block font-semibold text-brand-950 hover:text-brand-700">{p}</a>)}
           </span>
         </div>
         <div class="grid grid-cols-2 gap-4">
-          <a href={whatsappHref()} rel="noopener" target="_blank" class={`${card} hover:border-emerald-300`}>
-            <span class="rounded-xl bg-emerald-50 p-3 text-emerald-600"><MessageCircle class="size-6" /></span>
-            <span class="font-semibold">WhatsApp</span>
+          <a href={whatsappHref()} rel="noopener" target="_blank" class={`${card} hover:shadow-lg hover:ring-emerald-300`}>
+            <span class={`${icon} bg-emerald-50 text-emerald-700`}><MessageCircle class="size-5" aria-hidden="true" /></span>
+            <span class="font-semibold text-brand-950">WhatsApp</span>
           </a>
-          <a href={telegramHref()} rel="noopener" target="_blank" class={`${card} hover:border-sky-300`}>
-            <span class="rounded-xl bg-sky-50 p-3 text-sky-600"><Send class="size-6" /></span>
-            <span class="font-semibold">Telegram</span>
+          <a href={telegramHref()} rel="noopener" target="_blank" class={`${card} hover:shadow-lg hover:ring-sky-300`}>
+            <span class={`${icon} bg-sky-50 text-sky-700`}><Send class="size-5" aria-hidden="true" /></span>
+            <span class="font-semibold text-brand-950">Telegram</span>
           </a>
         </div>
-        <a href={`mailto:${c.email}`} class={`${card} hover:border-brand-300`}>
-          <span class="rounded-xl bg-brand-50 p-3 text-brand-600"><Mail class="size-6" /></span>
-          <span class="min-w-0"><span class="block text-sm text-slate-500">Email</span><span class="block break-all font-semibold">{c.email}</span></span>
+        <a href={`mailto:${c.email}`} class={`${card} hover:shadow-lg hover:ring-brand-300`}>
+          <span class={`${icon} bg-brand-50 text-brand-700`}><Mail class="size-5" aria-hidden="true" /></span>
+          <span class="min-w-0"><span class="block text-sm text-slate-500">Email</span><span class="block break-all font-semibold text-brand-950">{c.email}</span></span>
         </a>
         <div class={card}>
-          <span class="rounded-xl bg-accent-50 p-3 text-accent-700"><MapPin class="size-6" /></span>
+          <span class={`${icon} bg-accent-50 text-accent-700`}><MapPin class="size-5" aria-hidden="true" /></span>
           <span>
             <span class="block text-sm text-slate-500">Visit us</span>
-            <span class="font-semibold">{fullAddress()}</span>
+            <span class="font-semibold text-brand-950">{fullAddress()}</span>
             <span class="block text-sm text-slate-600" lang="am">{c.cityLocal}</span>
-            {c.mapUrl && <a href={c.mapUrl} rel="noopener" target="_blank" class="mt-1 inline-block text-sm font-medium text-brand-600 hover:underline">Open in Google Maps →</a>}
+            <a href="#map" class="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">See the map ↓</a>
           </span>
         </div>
         {
           hours && (
             <div class={card}>
-              <span class="rounded-xl bg-slate-100 p-3 text-slate-600"><Clock class="size-6" /></span>
-              <span><span class="block text-sm text-slate-500">Opening hours</span><span class="font-semibold">{hours}</span></span>
+              <span class={`${icon} bg-slate-100 text-slate-600`}><Clock class="size-5" aria-hidden="true" /></span>
+              <span><span class="block text-sm text-slate-500">Opening hours</span><span class="font-semibold text-brand-950">{hours}</span></span>
             </div>
           )
         }
       </div>
 
-      <div id="quote" class="reveal scroll-mt-24 rounded-2xl border border-slate-200 p-6 shadow-sm md:p-8">
-        <h2 class="text-2xl font-semibold">Request a quote</h2>
+      <div id="quote" class="reveal scroll-mt-24 rounded-3xl bg-white p-6 shadow-xl shadow-slate-200/60 ring-1 ring-slate-200 md:p-8">
+        <h2 class="text-2xl font-extrabold tracking-tight text-brand-950">Request a <span class="text-brand-600">free quote</span></h2>
         <p class="mb-6 mt-1 text-sm text-slate-600">Tell us what you need. The more detail (sizes, quantities, deadline), the faster we can price it.</p>
         <QuoteForm />
       </div>
@@ -72,14 +69,14 @@ const card = "flex items-center gap-4 rounded-2xl border border-slate-200 p-5";
     <div class="container-site">
       <div class="reveal flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 id="map-title" class="text-2xl font-semibold">Find our office</h2>
+          <h2 id="map-title" class="text-2xl font-extrabold tracking-tight text-brand-950">Find <span class="text-brand-600">our office</span></h2>
           <p class="mt-1 text-slate-600">{fullAddress()} · <span lang="am">{c.cityLocal}</span></p>
         </div>
-        <a href={c.mapUrl} rel="noopener" target="_blank" class="inline-flex min-h-11 items-center gap-2 self-start rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700 sm:self-auto">
+        <a href={c.mapUrl} rel="noopener" target="_blank" class="inline-flex min-h-11 items-center gap-2 self-start rounded-full bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 sm:self-auto">
           <MapPin class="size-4" aria-hidden="true" /> Get directions
         </a>
       </div>
-      <div class="reveal mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm">
+      <div class="reveal mt-5 overflow-hidden rounded-3xl bg-slate-100 shadow-xl shadow-slate-200/60 ring-1 ring-slate-200">
         <iframe
           src={mapEmbedUrl()}
           title={`Map showing ${SITE.name} at ${fullAddress()}`}

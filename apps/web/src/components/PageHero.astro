@@ -1,0 +1,27 @@
+---
+// Light page header for the inner pages, in the same style as the home page hero.
+// Anything passed as children (chips, buttons) renders under the intro.
+interface Props {
+  eyebrow: string;
+  title: string;
+  /** Shown after the title in brand blue */
+  highlight?: string;
+  intro?: string;
+}
+
+const { eyebrow, title, highlight, intro } = Astro.props;
+---
+
+<section class="relative isolate overflow-hidden bg-gradient-to-b from-brand-50 to-white">
+  <div class="absolute -right-32 -top-40 -z-10 size-[26rem] rounded-full bg-brand-100/70" aria-hidden="true"></div>
+  <div class="container-site py-14 md:py-20">
+    <p class="fade-up inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-accent-700" style="--delay:0s">
+      <span class="h-0.5 w-6 rounded bg-accent-500"></span>{eyebrow}
+    </p>
+    <h1 class="fade-up mt-4 max-w-3xl text-[clamp(2.2rem,5vw,3.5rem)] font-extrabold leading-[1.08] tracking-tight text-brand-950" style="--delay:.1s">
+      {title}{highlight && <span class="text-brand-600"> {highlight}</span>}
+    </h1>
+    {intro && <p class="fade-up mt-4 max-w-2xl text-lg text-slate-600" style="--delay:.2s">{intro}</p>}
+    <slot />
+  </div>
+</section>

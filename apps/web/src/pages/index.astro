@@ -20,15 +20,14 @@ import {
   Trophy,
   Wrench,
 } from "@lucide/astro";
-import * as Icons from "@lucide/astro";
 import hero from "../assets/hero-showcase.jpg";
 import Base from "../layouts/Base.astro";
+import ProcessSteps from "../components/ProcessSteps.astro";
 import ServicePicture from "../components/ServicePicture.astro";
 import { SITE, telegramHref, telHref, whatsappHref } from "../content/site";
 
 const [mainPhone] = SITE.contact.phones;
 const service = (slug: string) => SITE.services.find((s) => s.slug === slug)!;
-const iconFor = (name: string) => (Icons as unknown as Record<string, typeof Icons.Image>)[name.replace(/(^|-)(\w)/g, (_, __, c: string) => c.toUpperCase())] ?? Icons.Image;
 
 const headline = ["Signs,", "print", "&", "branding", "that", "make", "you"];
 const highlight = ["impossible", "to", "miss."];
@@ -39,9 +38,6 @@ const benefits = [
   { icon: BadgeCheck, title: `${SITE.stats[1]?.value ?? ""} jobs completed` },
   { icon: MessageCircle, title: "Quotes by WhatsApp & Telegram" },
 ];
-
-const stepIcons = ["message-square-text", "file-text", "pen-tool", "truck"];
-const stepTones = ["bg-brand-50 text-brand-700", "bg-accent-50 text-accent-700", "bg-emerald-50 text-emerald-700", "bg-sky-50 text-sky-700"];
 
 // Category collage on the left of "Top categories"
 const collage = [service("signage"), service("vehicle-branding"), service("promotional")];
@@ -155,23 +151,7 @@ let w = 0;
         </h2>
         <p class="mt-4 text-slate-600">One team handles everything, so nothing gets lost between the designer, the printer and the installer.</p>
       </div>
-      <ol class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {
-          SITE.process.map((step, i) => {
-            const Icon = iconFor(stepIcons[i] ?? "check");
-            return (
-              <li class="reveal group rounded-3xl bg-white p-6 ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" style={`--i:${i}`}>
-                <div class:list={["relative flex aspect-[5/2] items-center justify-center rounded-2xl sm:aspect-[4/3]", stepTones[i % 4]]}>
-                  <Icon class="size-14 transition-transform duration-500 group-hover:scale-110" stroke-width={1.5} aria-hidden="true" />
-                  <span class="absolute left-4 top-3 text-sm font-extrabold tabular-nums">{String(i + 1).padStart(2, "0")}</span>
-                </div>
-                <h3 class="mt-5 text-lg font-bold text-brand-950">{step.title}</h3>
-                <p class="mt-1.5 text-sm text-slate-600">{step.text}</p>
-              </li>
-            );
-          })
-        }
-      </ol>
+      <ProcessSteps />
     </div>
   </section>
 
@@ -358,7 +338,7 @@ let w = 0;
             {SITE.stats.map((s, i) => (
               <div class="reveal flex flex-col-reverse px-1" style={`--i:${i}`}>
                 <dt class="mt-2 text-xs font-medium text-slate-500 sm:text-sm">{s.label}</dt>
-                <dd class="text-3xl font-extrabold tracking-tight text-brand-600 tabular-nums sm:text-5xl" data-count={s.value}>
+                <dd class="text-2xl font-extrabold tracking-tight text-brand-600 tabular-nums sm:text-5xl" data-count={s.value}>
                   {s.value}
                 </dd>
               </div>

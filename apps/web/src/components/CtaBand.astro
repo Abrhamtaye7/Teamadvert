@@ -1,0 +1,31 @@
+---
+// Closing call to action at the end of the inner pages: quote request and WhatsApp.
+import { ArrowUpRight, MessageCircle } from "@lucide/astro";
+import { whatsappHref } from "../content/site";
+
+interface Props {
+  title: string;
+  text?: string;
+}
+
+const { title, text } = Astro.props;
+---
+
+<section class="py-14 md:py-20">
+  <div class="container-site">
+    <div class="reveal relative isolate overflow-hidden rounded-[2rem] bg-brand-950 px-6 py-12 text-center text-white md:px-12 md:py-16">
+      <div class="absolute -right-16 -top-16 -z-10 size-56 rounded-full bg-brand-800/60" aria-hidden="true"></div>
+      <div class="absolute -bottom-24 -left-12 -z-10 size-56 rounded-full bg-brand-600/30" aria-hidden="true"></div>
+      <h2 class="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h2>
+      {text && <p class="mx-auto mt-3 max-w-xl text-brand-100">{text}</p>}
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href="/contact/#quote" class="inline-flex h-12 items-center gap-2 rounded-full bg-accent-500 px-7 font-semibold text-brand-950 transition hover:bg-accent-400">
+          Get a free quote <ArrowUpRight class="size-5" aria-hidden="true" />
+        </a>
+        <a href={whatsappHref()} target="_blank" rel="noopener" class="inline-flex h-12 items-center gap-2 rounded-full bg-white/10 px-6 font-semibold ring-1 ring-white/25 transition hover:bg-white/20">
+          <MessageCircle class="size-5" aria-hidden="true" /> WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
