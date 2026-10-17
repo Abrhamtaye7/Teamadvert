@@ -2,7 +2,7 @@
 import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "@lucide/astro";
 import Base from "../layouts/Base.astro";
 import QuoteForm from "../components/QuoteForm.astro";
-import { SITE, fullAddress, ready, telegramHref, telHref, whatsappHref } from "../content/site";
+import { SITE, fullAddress, mapEmbedUrl, ready, telegramHref, telHref, whatsappHref } from "../content/site";
 
 const c = SITE.contact;
 const hours = ready(c.hours);
@@ -64,6 +64,30 @@ const card = "flex items-center gap-4 rounded-2xl border border-slate-200 p-5";
         <h2 class="text-2xl font-semibold">Request a quote</h2>
         <p class="mb-6 mt-1 text-sm text-slate-600">Tell us what you need. The more detail (sizes, quantities, deadline), the faster we can price it.</p>
         <QuoteForm />
+      </div>
+    </div>
+  </section>
+
+  <section id="map" class="scroll-mt-24 pb-14 md:pb-20" aria-labelledby="map-title">
+    <div class="container-site">
+      <div class="reveal flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 id="map-title" class="text-2xl font-semibold">Find our office</h2>
+          <p class="mt-1 text-slate-600">{fullAddress()} · <span lang="am">{c.cityLocal}</span></p>
+        </div>
+        <a href={c.mapUrl} rel="noopener" target="_blank" class="inline-flex min-h-11 items-center gap-2 self-start rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700 sm:self-auto">
+          <MapPin class="size-4" aria-hidden="true" /> Get directions
+        </a>
+      </div>
+      <div class="reveal mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm">
+        <iframe
+          src={mapEmbedUrl()}
+          title={`Map showing ${SITE.name} at ${fullAddress()}`}
+          class="block aspect-[4/3] w-full sm:aspect-[16/7]"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
+        ></iframe>
       </div>
     </div>
   </section>

@@ -27,6 +27,8 @@ export const SITE = {
     /** Leave "" to hide until exact hours are known, e.g. "Mon–Fri 8:30–17:30, Sat 8:30–12:30" */
     hours: "",
     mapUrl: "https://maps.app.goo.gl/eryWAAkWJxADAhma8",
+    /** The "Team advert" pin that mapUrl opens; used for the map on the Contact page */
+    map: { lat: 8.9978799, lng: 38.7691876, zoom: 17 },
   },
 
   social: {
@@ -202,4 +204,9 @@ export const ready = (value: string) => (value && !isPlaceholder(value) ? value 
 export const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
 export const whatsappHref = () => `https://wa.me/${SITE.contact.whatsapp}`;
 export const telegramHref = () => `https://t.me/${SITE.contact.telegram}`;
+/** Google Maps embed for the office pin (no API key needed) */
+export const mapEmbedUrl = () => {
+  const { lat, lng, zoom } = SITE.contact.map;
+  return `https://maps.google.com/maps?q=${lat},${lng}&z=${zoom}&hl=en&output=embed`;
+};
 export const fullAddress = () => [SITE.contact.address, SITE.contact.city, SITE.contact.country].filter(Boolean).join(", ");

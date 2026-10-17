@@ -14,10 +14,13 @@ interface Props {
   size?: "lg" | "sm";
   /** Where the illustration icon sits; "top" leaves room for text laid over the picture */
   iconPosition?: "center" | "top";
+  /** Cover the nearest positioned parent instead of keeping a 4:3 shape */
+  fill?: boolean;
   class?: string;
 }
 
-const { photoKey, icon, alt, tone = "blue", size = "lg", iconPosition = "center", class: className } = Astro.props;
+const { photoKey, icon, alt, tone = "blue", size = "lg", iconPosition = "center", fill = false, class: className } = Astro.props;
+const shape = fill ? "absolute inset-0 size-full" : "aspect-[4/3] w-full";
 
 const photos = import.meta.glob<ImageMetadata>("../assets/services/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" });
 const photo = Object.entries(photos).find(([path]) => path.split("/").pop()!.replace(/\.\w+$/, "") === photoKey)?.[1];
@@ -41,10 +44,10 @@ const tones = {
       widths={size === "lg" ? [480, 800, 1200] : [320, 480]}
       sizes={size === "lg" ? "(min-width: 1024px) 560px, 100vw" : "(min-width: 768px) 240px, 50vw"}
       formats={["webp"]}
-      class:list={["aspect-[4/3] w-full object-cover", className]}
+      class:list={[shape, "object-cover", className]}
     />
   ) : (
-    <div role="img" aria-label={alt} class:list={["relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br", tones[tone], className]}>
+    <div {...(alt ? { role: "img", "aria-label": alt } : { "aria-hidden": "true" })} class:list={[fill ? shape : "relative aspect-[4/3] w-full", "overflow-hidden bg-gradient-to-br", tones[tone], className]}>
       <div class="absolute inset-0 opacity-20 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:14px_14px]" />
       <div class="absolute -right-8 -top-8 size-32 rounded-full bg-white/15" />
       <div class="absolute -bottom-10 -left-6 size-28 rounded-full bg-black/10" />

@@ -1,8 +1,10 @@
 ---
 import { Image } from "astro:assets";
-import { Menu, X } from "@lucide/astro";
+import { Mail, MapPin, Menu, Phone, X } from "@lucide/astro";
 import logo from "../assets/teamlogo.png";
-import { SITE } from "../content/site";
+import { SITE, telHref, telegramHref, whatsappHref } from "../content/site";
+
+const [mainPhone] = SITE.contact.phones;
 
 const links = [
   { href: "/services/", label: "Services" },
@@ -12,6 +14,19 @@ const links = [
 const path = Astro.url.pathname;
 const active = (href: string) => path.startsWith(href);
 ---
+
+<!-- Contact bar: scrolls away; the header below stays pinned -->
+<aside class="bg-brand-950 text-xs text-brand-100" aria-label="Quick contact">
+  <div class="container-site flex h-10 items-center gap-5">
+    <a href={telHref(mainPhone)} class="inline-flex min-h-10 items-center gap-1.5 hover:text-white"><Phone class="size-3.5 text-accent-400" aria-hidden="true" />{mainPhone}</a>
+    <a href={`mailto:${SITE.contact.email}`} class="hidden min-h-10 items-center gap-1.5 hover:text-white sm:inline-flex"><Mail class="size-3.5 text-accent-400" aria-hidden="true" />{SITE.contact.email}</a>
+    <a href={SITE.contact.mapUrl} target="_blank" rel="noopener" class="hidden min-h-10 items-center gap-1.5 hover:text-white lg:inline-flex"><MapPin class="size-3.5 text-accent-400" aria-hidden="true" />{SITE.contact.address}, {SITE.contact.city}</a>
+    <span class="ml-auto flex items-center gap-4 font-medium">
+      <a href={whatsappHref()} target="_blank" rel="noopener" class="inline-flex min-h-10 items-center hover:text-white">WhatsApp</a>
+      <a href={telegramHref()} target="_blank" rel="noopener" class="inline-flex min-h-10 items-center hover:text-white">Telegram</a>
+    </span>
+  </div>
+</aside>
 
 <header class="site-header sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur transition-[box-shadow,background-color] duration-300">
   <div class="container-site flex h-16 items-center gap-6">

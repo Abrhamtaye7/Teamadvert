@@ -149,11 +149,15 @@ html.js .reveal.is-visible {
 }
 
 /* Picture zoom on card hover/focus */
-.zoom-media > * {
+/* img too: a <picture> wrapper is inline and cannot be transformed */
+.zoom-media > div,
+.zoom-media img {
   transition: transform 0.7s var(--ease-out-expo);
 }
-.group:hover .zoom-media > *,
-.group:focus-visible .zoom-media > * {
+.group:hover .zoom-media > div,
+.group:hover .zoom-media img,
+.group:focus-visible .zoom-media > div,
+.group:focus-visible .zoom-media img {
   transform: scale(1.06);
 }
 
@@ -194,7 +198,8 @@ html.js .step.is-active {
   .gradient-pan {
     animation: none;
   }
-  .zoom-media > * {
+  .zoom-media > div,
+  .zoom-media img {
     transition: none;
   }
   .marquee-toggle {
