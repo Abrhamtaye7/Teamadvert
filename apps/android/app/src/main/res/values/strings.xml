@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Team Advert</string>
+    <string name="lock_title">Team Advert Office</string>
+    <string name="lock_message">Locked. Use your fingerprint, face or phone PIN to open the office.</string>
+    <string name="lock_retry">Still locked. Tap Unlock to try again.</string>
+    <string name="lock_no_screen_lock">Set a screen lock on this phone (PIN, pattern, password, fingerprint or face) to use the office app.</string>
+    <string name="unlock">Unlock</string>
+    <string name="open_settings">Open security settings</string>
+    <string name="prompt_title">Unlock Team Advert Office</string>
+    <string name="prompt_subtitle">Use your fingerprint, face or phone PIN</string>
+    <string name="close">Close</string>
+    <string name="print">Print / Save PDF</string>
+    <string name="no_app_for_link">No app on this phone can open that link.</string>
+</resources>

@@ -118,6 +118,27 @@ chats. Telegram calls the API (`/api/telegram/webhook`) for each message, so not
 Messages that contain a PIN (`/newuser`, `/resetpin`, `/changepin`) are deleted from the chat after use. To stop the
 bot, remove `TELEGRAM_BOT_TOKEN` and run `node dist/telegram-cli.mjs unwebhook` first.
 
+## 8. Android app (office with fingerprint / face / PIN lock)
+
+`apps/android/` is a small native app that opens `https://teamadvertplc.com/office/` behind the phone's own lock
+(fingerprint, face, or the phone's PIN / pattern / password). It locks on start and after a minute in the background;
+signing in to the office still uses the office username and PIN. Printouts open in a print window with
+**Print / Save PDF**. Because it loads the live office, office updates need no new APK.
+
+Build (needs JDK 17 and the Android SDK at `~/Android/Sdk`):
+
+```bash
+cd apps/android
+echo "sdk.dir=$HOME/Android/Sdk" > local.properties   # once
+./gradlew assembleRelease                              # → app/build/outputs/apk/release/app-release.apk
+```
+
+The release is signed with the key in `~/.android-keys/` (`teamadvert-office.jks` + `.properties`), which is kept
+outside the repository. **Back that folder up**: phones only install updates signed with the same key. For a new
+version, raise `versionCode` (and `versionName`) in `apps/android/app/build.gradle.kts`.
+
+Install: copy the APK to the phone, open it, and allow "Install unknown apps" for the app you opened it with.
+
 ## Local development
 
 ```bash
