@@ -2,8 +2,6 @@
 // Scroll-driven motion for the public site (no library, ~1 KB):
 //  .reveal          → fades/rises in when scrolled into view
 //  [data-count]     → counts up to its number ("42,000+") when visible
-//  [data-parallax]  → moves at a fraction of scroll speed (e.g. 0.15)
-//  .step            → highlighted while it is in the middle of the screen
 //  .site-header     → gets data-scrolled once the page scrolls
 // Everything is skipped when the visitor prefers reduced motion.
 ---
@@ -11,13 +9,14 @@
 <script>
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Pause/play for the moving services strip
+  // Pause/play for the moving strips (products, partners)
   document.querySelectorAll<HTMLButtonElement>(".marquee-toggle").forEach((button) => {
     button.addEventListener("click", () => {
       const marquee = button.closest(".marquee");
       const paused = marquee?.classList.toggle("is-paused") ?? false;
+      const strip = button.dataset.strip ?? "products";
       button.setAttribute("aria-pressed", String(paused));
-      button.setAttribute("aria-label", paused ? "Play the moving services strip" : "Pause the moving services strip");
+      button.setAttribute("aria-label", `${paused ? "Play" : "Pause"} the moving ${strip} strip`);
     });
   });
 
@@ -73,32 +72,14 @@
     counters.forEach((el) => co.observe(el));
   }
 
-  // Sticky steps: highlight the one crossing the middle of the viewport
-  const steps = document.querySelectorAll<HTMLElement>(".step");
-  if (steps.length && "IntersectionObserver" in window) {
-    const so = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) e.target.classList.toggle("is-active", e.isIntersecting);
-      },
-      { rootMargin: "-45% 0px -45% 0px" },
-    );
-    steps.forEach((el) => so.observe(el));
-  }
-
-  // Parallax + header state, batched into one animation frame per scroll
-  const parallax = reduce ? [] : Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
+  // Header state, updated at most once per animation frame while scrolling
   const header = document.querySelector<HTMLElement>(".site-header");
   let ticking = false;
   const onScroll = () => {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => {
-      const y = window.scrollY;
-      header?.setAttribute("data-scrolled", String(y > 8));
-      for (const el of parallax) {
-        const speed = Number(el.dataset.parallax) || 0.15;
-        el.style.transform = `translate3d(0, ${(y * speed).toFixed(1)}px, 0)`;
-      }
+      header?.setAttribute("data-scrolled", String(window.scrollY > 8));
       ticking = false;
     });
   };

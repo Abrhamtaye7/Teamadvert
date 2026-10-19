@@ -101,7 +101,7 @@ export const useCreateUnit = () => useInvalidatingMutation((unitName: string) =>
 // ---------- Proformas ----------
 
 export type NewCustomerInput = { name: string; company?: string; phones?: string[]; email?: string; tin?: string };
-export type ProformaLineInput = {
+type ProformaLineInput = {
   itemId?: number;
   name: string;
   description?: string;
@@ -133,7 +133,7 @@ export const useConvertProforma = () => useInvalidatingMutation((id: number) => 
 
 // ---------- Jobs ----------
 
-export type JobLineInput = { itemId?: number; name: string; description?: string; quantity: number; unit?: string; price: number };
+type JobLineInput = { itemId?: number; name: string; description?: string; quantity: number; unit?: string; price: number };
 export type JobPayload = {
   customerId?: number;
   customerNew?: NewCustomerInput;
@@ -146,14 +146,13 @@ export type JobPayload = {
   artworkPath?: string;
   jobItems: JobLineInput[];
 };
-export type JobApprovePayload = { price?: number; deadline?: string; priority?: "high" | "normal" | "low"; advancePayment?: number; adminNotes?: string };
+type JobApprovePayload = { price?: number; deadline?: string; priority?: "high" | "normal" | "low"; advancePayment?: number; adminNotes?: string };
 
 const JOB_KEYS = ["jobs", "job", "reports", "notifications", "payments"];
 
 export const useJobs = (params: Query) =>
   useQuery({ queryKey: ["jobs", params], queryFn: () => api.get<Paged<Job>>("/jobs", params), placeholderData: keepPreviousData });
 export const useJob = (id: number) => useQuery({ queryKey: ["job", id], queryFn: () => api.get<Job>(`/jobs/${id}`) });
-export const fetchJobPrint = (id: number) => api.get<{ job: Job; total: number }>(`/jobs/${id}/print`);
 export const fetchJobs = (params: Query) => api.get<Paged<Job>>("/jobs", params);
 export const useCreateJob = () => useInvalidatingMutation((input: JobPayload) => api.post<Job>("/jobs", input), ["jobs", "customers", "proformas"]);
 export const useApproveJob = (id: number) => useInvalidatingMutation((input: JobApprovePayload) => api.post<Job>(`/jobs/${id}/approve`, input), JOB_KEYS);
@@ -164,7 +163,7 @@ export const useJobFinance = () =>
 
 // ---------- Payments ----------
 
-export type PaymentPayload = { jobId: number; amount: number; method: "Cash" | "Bank"; transactionNumber?: string };
+type PaymentPayload = { jobId: number; amount: number; method: "Cash" | "Bank"; transactionNumber?: string };
 
 export const usePayments = () => useQuery({ queryKey: ["payments"], queryFn: () => api.get<Payment[]>("/payments") });
 export const useRecordPayment = () => useInvalidatingMutation((input: PaymentPayload) => api.post<Payment>("/payments", input), JOB_KEYS);

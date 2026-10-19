@@ -1,0 +1,190 @@
+---
+// One page per service (/services/signage/ …), so each can rank for its own searches ("sign board Addis Ababa",
+// "vehicle wrap Ethiopia"). Content comes from src/content/site.ts and the search words from src/content/seo.ts.
+import { ArrowRight, ArrowUpRight, ChevronRight, MessageCircle, Phone } from "@lucide/astro";
+import Base from "../../layouts/Base.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import Faq from "../../components/Faq.astro";
+import PageHero from "../../components/PageHero.astro";
+import ProcessSteps from "../../components/ProcessSteps.astro";
+import ServicePicture from "../../components/ServicePicture.astro";
+import { SERVICE_KEYWORDS, serviceFaqs, serviceUrl } from "../../content/seo";
+import { SITE, type Service, telHref, whatsappHref } from "../../content/site";
+
+export function getStaticPaths() {
+  return SITE.services.map((service) => ({ params: { slug: service.slug }, props: { service } }));
+}
+
+interface Props {
+  service: Service;
+}
+
+const { service: s } = Astro.props;
+const index = SITE.services.findIndex((x) => x.slug === s.slug);
+const words = SERVICE_KEYWORDS[s.slug] ?? { en: [], am: [] };
+const faqs = serviceFaqs(s);
+const [phone] = SITE.contact.phones;
+const tones = ["blue", "orange", "navy"] as const;
+// The next three services, so every page links on to others
+const related = [1, 2, 3].map((n) => SITE.services[(index + n) % SITE.services.length]);
+const url = new URL(serviceUrl(s.slug), SITE.url).href;
+
+const title = `${s.title} in Addis Ababa, Ethiopia`;
+// Google shows about 155 characters
+const description = `${s.summary} Free quote in Addis Ababa: ${phone}.`;
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name: s.title,
+    serviceType: s.title,
+    description: s.summary,
+    url,
+    provider: { "@id": `${SITE.url}/#business` },
+    areaServed: [
+      { "@type": "City", name: "Addis Ababa" },
+      { "@type": "Country", name: "Ethiopia" },
+    ],
+    keywords: [...words.en, ...words.am].join(", "),
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: s.title,
+      itemListElement: s.items.map((item) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: item.title } })),
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE.url}/` },
+      { "@type": "ListItem", position: 2, name: "Services", item: `${SITE.url}/services/` },
+      { "@type": "ListItem", position: 3, name: s.title, item: url },
+    ],
+  },
+];
+---
+
+<Base title={title} description={description} keywords={[...words.en, ...words.am]} schema={schema}>
+  <PageHero eyebrow="Services in Addis Ababa" title={s.title} highlight="in Addis Ababa" intro={s.summary}>
+    <nav class="fade-up mt-5 text-sm text-slate-500" style="--delay:.25s" aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-1">
+        <li><a href="/" class="hover:text-brand-700">Home</a></li>
+        <li aria-hidden="true"><ChevronRight class="size-4" /></li>
+        <li><a href="/services/" class="hover:text-brand-700">Services</a></li>
+        <li aria-hidden="true"><ChevronRight class="size-4" /></li>
+        <li aria-current="page" class="font-medium text-slate-700">{s.title}</li>
+      </ol>
+    </nav>
+    <div class="fade-up mt-7 flex flex-wrap gap-3" style="--delay:.35s">
+      <a href="/contact/#quote" class="group inline-flex h-12 items-center gap-2 rounded-full bg-brand-600 px-6 font-semibold text-white shadow-lg shadow-brand-600/25 transition hover:bg-brand-700">
+        Get a free quote <ArrowRight class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+      </a>
+      <a href={telHref(phone)} class="inline-flex h-12 items-center gap-2 rounded-full bg-white px-5 font-semibold text-brand-950 ring-1 ring-slate-200 transition hover:ring-brand-300">
+        <Phone class="size-4 text-brand-600" aria-hidden="true" /> {phone}
+      </a>
+      <a href={whatsappHref()} target="_blank" rel="noopener" class="inline-flex h-12 items-center gap-2 rounded-full bg-emerald-700 px-5 font-semibold text-white transition hover:bg-emerald-800">
+        <MessageCircle class="size-4" aria-hidden="true" /> WhatsApp
+      </a>
+    </div>
+  </PageHero>
+
+  <!-- What we make -->
+  <section class="py-14 md:py-20" aria-labelledby="make-title">
+    <div class="container-site">
+      <div class="grid items-center gap-8 md:grid-cols-2 md:gap-12">
+        <div class="reveal reveal-zoom overflow-hidden rounded-3xl shadow-xl shadow-slate-300/40">
+          <ServicePicture photoKey={s.slug} icon={s.icon} alt={`${s.title} by ${SITE.name}, Addis Ababa`} tone={tones[index % 3]} />
+        </div>
+        <div class="reveal" style="--i:1">
+          <p class="text-xs font-bold uppercase tracking-[0.18em] text-accent-700">{s.items.length} options</p>
+          <h2 id="make-title" class="mt-2 text-3xl font-extrabold tracking-tight text-brand-950 sm:text-4xl">
+            {s.title} <span class="text-brand-600">we make</span>
+          </h2>
+          <p class="mt-3 text-lg text-slate-600">
+            {SITE.name} designs, produces and installs {s.title.toLowerCase()} for businesses in Addis Ababa and across Ethiopia, from our
+            workshop on {SITE.contact.address}.
+          </p>
+          <ul class="mt-5 space-y-2 text-slate-700">
+            {s.items.map((item) => <li class="flex items-start gap-2"><span class="mt-2 size-1.5 shrink-0 rounded-full bg-accent-500" />{item.title}</li>)}
+          </ul>
+        </div>
+      </div>
+
+      <ul class="mt-12 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">
+        {
+          s.items.map((item, j) => (
+            <li class="reveal h-full rounded-3xl bg-white p-3 ring-1 ring-slate-200" style={`--i:${j % 5}`}>
+              <div class="overflow-hidden rounded-2xl">
+                <ServicePicture photoKey={`${s.slug}--${item.slug}`} icon={item.icon} alt={`${item.title}, Addis Ababa`} tone={tones[(index + j + 1) % 3]} size="sm" />
+              </div>
+              <h3 class="px-1 pb-1 pt-3 text-sm font-semibold leading-snug text-brand-950">{item.title}</h3>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- The words people search with, in English and Amharic -->
+  {
+    (words.en.length > 0 || words.am.length > 0) && (
+      <section class="border-y border-slate-100 bg-slate-50 py-10" aria-labelledby="also-title">
+        <div class="container-site">
+          <h2 id="also-title" class="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">Also known as</h2>
+          <ul class="mt-4 flex flex-wrap gap-2">
+            {words.en.map((w) => <li class="rounded-full bg-white px-3.5 py-1.5 text-sm text-slate-700 ring-1 ring-slate-200">{w}</li>)}
+            {words.am.map((w) => <li lang="am" class="rounded-full bg-white px-3.5 py-1.5 text-sm text-slate-700 ring-1 ring-slate-200">{w}</li>)}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- How ordering works -->
+  <section class="py-20 md:py-24" aria-labelledby="process-title">
+    <div class="container-site">
+      <div class="reveal mx-auto max-w-2xl text-center">
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-accent-700">How it works</p>
+        <h2 id="process-title" class="mt-3 text-3xl font-extrabold tracking-tight text-brand-950 sm:text-4xl">
+          Ordering {s.title.toLowerCase()} in <span class="text-brand-600">four steps</span>
+        </h2>
+      </div>
+      <ProcessSteps />
+    </div>
+  </section>
+
+  <Faq faqs={faqs} title={s.title} highlight="questions" class="bg-slate-50" />
+
+  <!-- Related services -->
+  <section class="py-16 md:py-20" aria-labelledby="related-title">
+    <div class="container-site">
+      <h2 id="related-title" class="reveal text-2xl font-extrabold tracking-tight text-brand-950 sm:text-3xl">
+        More from <span class="text-brand-600">{SITE.shortName}</span>
+      </h2>
+      <ul class="mt-8 grid gap-4 sm:grid-cols-3">
+        {
+          related.map((r, i) => (
+            <li class="reveal" style={`--i:${i}`}>
+              <a href={serviceUrl(r.slug)} class="group block h-full rounded-3xl bg-white p-3 ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div class="zoom-media overflow-hidden rounded-2xl">
+                  <ServicePicture photoKey={r.slug} icon={r.icon} alt="" tone={tones[(index + i + 1) % 3]} size="sm" />
+                </div>
+                <span class="flex items-center justify-between gap-2 px-1 pb-1 pt-4 font-bold text-brand-950">
+                  {r.title}
+                  <ArrowUpRight class="size-4 shrink-0 text-brand-600 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a href="/services/" class="mt-8 inline-flex items-center gap-1.5 font-semibold text-brand-700 hover:underline">
+        All {SITE.services.length} services <ArrowRight class="size-4" aria-hidden="true" />
+      </a>
+    </div>
+  </section>
+
+  <CtaBand title={`Need ${s.title.toLowerCase()}?`} text="Send us the size, quantity and deadline and we'll reply with a proforma." />
+</Base>

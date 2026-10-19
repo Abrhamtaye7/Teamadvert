@@ -1,6 +1,6 @@
 import { auditLogs, type Executor } from "@teamadvert/db";
 
-export type AuditEntry = {
+type AuditEntry = {
   userId?: number;
   entity: string;
   entityId?: string | number;

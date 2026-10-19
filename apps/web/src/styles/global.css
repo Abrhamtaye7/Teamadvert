@@ -48,14 +48,6 @@
   @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
 }
 
-/* Oversized display type (Exaggerated Minimalism) */
-.display {
-  font-size: clamp(2.6rem, 7.5vw, 6rem);
-  line-height: 0.98;
-  letter-spacing: -0.035em;
-  font-weight: 800;
-}
-
 /* ---------- Scroll reveal ----------
  * Elements start hidden only when JavaScript runs (html.js), so content is always visible to
  * no-JS visitors and search engines. --i staggers siblings by 80 ms each.
@@ -70,9 +62,6 @@ html.js .reveal {
 }
 html.js .reveal.reveal-zoom {
   transform: translateY(18px) scale(0.95);
-}
-html.js .reveal.reveal-left {
-  transform: translateX(-32px);
 }
 html.js .reveal.is-visible {
   opacity: 1;
@@ -136,16 +125,9 @@ html.js .reveal.is-visible {
     transform: translateX(-50%);
   }
 }
-
-/* Animated gradient for call-to-action bands */
-.gradient-pan {
-  background-size: 200% 200%;
-  animation: pan 12s ease-in-out infinite;
-}
-@keyframes pan {
-  50% {
-    background-position: 100% 50%;
-  }
+/* Partner logos: stop at the start when tabbing in, so the focused logo is on screen */
+.partners-marquee:has(a:focus-visible) .marquee-track {
+  animation: none;
 }
 
 /* Picture zoom on card hover/focus */
@@ -161,18 +143,6 @@ html.js .reveal.is-visible {
   transform: scale(1.06);
 }
 
-/* Sticky "how it works" steps light up as they scroll past */
-/* Steps stay fully readable; the active one is lifted and outlined in brand orange */
-html.js .step {
-  transition: transform 0.5s var(--ease-out-expo), border-color 0.5s ease, background-color 0.5s ease, box-shadow 0.5s ease;
-}
-html.js .step.is-active {
-  transform: translateX(6px);
-  border-color: var(--color-accent-500);
-  background-color: var(--color-accent-50);
-  box-shadow: 0 18px 40px -24px rgb(247 147 30 / 0.6);
-}
-
 /* Header turns solid once the page scrolls */
 .site-header[data-scrolled="true"] {
   box-shadow: 0 6px 24px -12px rgb(15 23 42 / 0.25);
@@ -184,8 +154,7 @@ html.js .step.is-active {
   html {
     scroll-behavior: auto;
   }
-  html.js .reveal,
-  html.js .step {
+  html.js .reveal {
     opacity: 1;
     transform: none;
     transition: none;
@@ -194,8 +163,7 @@ html.js .step.is-active {
   .fade-up,
   .float,
   .float-slow,
-  .marquee-track,
-  .gradient-pan {
+  .marquee-track {
     animation: none;
   }
   .zoom-media > div,
@@ -203,6 +171,16 @@ html.js .step.is-active {
     transition: none;
   }
   .marquee-toggle {
+    display: none;
+  }
+  /* Partner logos sit still in centred rows, each shown once */
+  .partners-fade {
+    mask-image: none;
+  }
+  .partners-marquee .marquee-track {
+    @apply mx-auto w-auto max-w-6xl flex-wrap justify-center gap-y-6 px-4;
+  }
+  .partners-marquee .partner-logo[aria-hidden="true"] {
     display: none;
   }
 }

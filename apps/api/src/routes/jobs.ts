@@ -32,7 +32,7 @@ export type JobStatus = (typeof jobStatuses)[number];
  * Allowed workflow moves: pending_approval → approved → in_progress → completed → finance_review → closed.
  * Legacy accepted any status from any state (e.g. "completed" on a job that was never approved).
  */
-export const TRANSITIONS: Record<string, { to: JobStatus; from: JobStatus[] }[]> = {
+const TRANSITIONS: Record<string, { to: JobStatus; from: JobStatus[] }[]> = {
   approve: [{ to: "approved", from: ["pending_approval", "approved"] }],
   production: [
     { to: "in_progress", from: ["approved", "in_progress"] },

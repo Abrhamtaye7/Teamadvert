@@ -296,7 +296,7 @@ export function validUntilDay(date: Date, validity: number | null) {
   return validity ? addisDay(new Date(date.getTime() + validity * 86_400_000)) : null;
 }
 
-export type VerifyStatus = "valid" | "expired" | "accepted" | "not_approved";
+type VerifyStatus = "valid" | "expired" | "accepted" | "not_approved";
 
 /** What a scanned QR code reports. A proforma stays valid through the whole of its last day. */
 export function verifyStatus(p: Pick<ProformaRow, "status" | "date" | "validity">, now = new Date()): VerifyStatus {

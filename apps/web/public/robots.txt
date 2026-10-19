@@ -1,5 +1,9 @@
+# Search engines and AI assistants (Googlebot, Bingbot, GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot,
+# Google-Extended, …) are all welcome on the public site. Staff and API pages stay private.
 User-agent: *
 Disallow: /office
 Disallow: /api
 
 Sitemap: https://teamadvertplc.com/sitemap-index.xml
+
+# Plain-language summary for AI assistants: https://teamadvertplc.com/llms.txt

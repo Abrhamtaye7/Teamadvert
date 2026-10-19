@@ -20,7 +20,8 @@ export async function createHarness(overrides: Partial<Config> = {}) {
   const { db, pool } = createDb(url, { connectionLimit: 5 });
   await dropAllTables(db);
   await runMigrations(db);
-  await seedDatabase(db, { adminPin: ADMIN_PIN });
+  // Tests number documents from 1, independent of the business's starting points
+  await seedDatabase(db, { adminPin: ADMIN_PIN, counterStarts: [] });
 
   const config: Config = {
     databaseUrl: url,
@@ -31,6 +32,7 @@ export async function createHarness(overrides: Partial<Config> = {}) {
     cookieSecure: false,
     backupDir: await mkdtemp(path.join(tmpdir(), "teamadvert-backup-")),
     cbe: DEFAULT_CBE_CONFIG,
+    publicUrl: "https://teamadvertplc.com",
     ...overrides,
   };
   const loginLimiter = new FixedWindowLimiter(1000, 60_000);

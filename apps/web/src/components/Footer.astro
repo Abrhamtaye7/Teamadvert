@@ -42,13 +42,16 @@ const year = new Date().getFullYear();
         <li><a href="/services/" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">Services</a></li>
         <li><a href="/about/" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">About us</a></li>
         <li><a href="/contact/#quote" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">Request a quote</a></li>
+        <li><a href="/faq/" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">FAQ</a></li>
       </ul>
     </div>
   </div>
   <div class="border-t border-white/10">
     <div class="container-site flex flex-col gap-2 py-5 text-xs text-slate-400 sm:flex-row sm:justify-between">
-      <p>© {year} {SITE.name}. All rights reserved.</p>
-      <a href="/office/" rel="nofollow" class="inline-flex min-h-11 items-center hover:text-white md:min-h-8">Staff login</a>
+      <!-- Staff app (/office/) is reached by typing its address; it is not linked from the public site -->
+      <p>
+        © {year} <a href="https://razielcc.com/" rel="noopener" target="_blank" class="font-medium text-slate-300 underline-offset-2 hover:text-white hover:underline">RCC </a> &amp; {SITE.name}. All rights reserved.
+      </p>
     </div>
   </div>
 </footer>

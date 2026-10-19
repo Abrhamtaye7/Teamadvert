@@ -4,6 +4,7 @@ import logo from "../assets/teamlogo.png";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import Motion from "../components/Motion.astro";
+import { BUSINESS_KEYWORDS, BUSINESS_KEYWORDS_AMHARIC, SERVICE_KEYWORDS, serviceUrl } from "../content/seo";
 import { SITE } from "../content/site";
 import "../styles/global.css";
 
@@ -11,21 +12,37 @@ interface Props {
   title: string;
   description?: string;
   noindex?: boolean;
+  /** Extra search phrases for this page (meta keywords; Google ignores it, Bing and others still read it) */
+  keywords?: string[];
+  /** Extra structured data for this page (e.g. Service, BreadcrumbList) */
+  schema?: Record<string, unknown>[];
 }
 
-const { title, description = SITE.description, noindex = false } = Astro.props;
+const { title, description = SITE.description, noindex = false, keywords = [], schema = [] } = Astro.props;
 const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.tagline}` : `${title} | ${SITE.name}`;
 const canonical = new URL(Astro.url.pathname, SITE.url).href;
 const ogImage = await getImage({ src: logo, width: 500, format: "png" });
 const c = SITE.contact;
+const businessId = `${SITE.url}/#business`;
+
+// Everything we make, in the words people search with: helps AI answer engines connect questions to us
+const knowsAbout = [
+  ...SITE.services.flatMap((s) => [s.title, ...s.items.map((i) => i.title)]),
+  ...Object.values(SERVICE_KEYWORDS).flatMap((k) => k.en),
+];
 
 // LocalBusiness structured data for Google; placeholder (TODO) values are left out.
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
+  "@id": businessId,
   name: SITE.name,
+  alternateName: SITE.shortName,
+  slogan: SITE.tagline,
   url: SITE.url,
   description: SITE.description,
+  knowsAbout,
+  keywords: [...BUSINESS_KEYWORDS, ...BUSINESS_KEYWORDS_AMHARIC].join(", "),
   logo: new URL(ogImage.src, SITE.url).href,
   image: new URL(ogImage.src, SITE.url).href,
   telephone: c.phones[0],
@@ -43,16 +60,32 @@ const jsonLd = {
   geo: { "@type": "GeoCoordinates", latitude: c.map.lat, longitude: c.map.lng },
   ...(c.hours ? { openingHours: c.hours } : {}),
   sameAs: Object.values(SITE.social).filter(Boolean),
-  areaServed: "Ethiopia",
+  areaServed: [
+    { "@type": "City", name: "Addis Ababa" },
+    { "@type": "Country", name: "Ethiopia" },
+  ],
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Services",
     itemListElement: SITE.services.map((s) => ({
       "@type": "Offer",
-      itemOffered: { "@type": "Service", name: s.title, description: s.summary, url: new URL(`/services/#${s.slug}`, SITE.url).href },
+      itemOffered: { "@type": "Service", name: s.title, description: s.summary, url: new URL(serviceUrl(s.slug), SITE.url).href },
     })),
   },
 };
+
+const website = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE.url}/#website`,
+  name: SITE.name,
+  alternateName: SITE.shortName,
+  url: SITE.url,
+  inLanguage: "en",
+  publisher: { "@id": businessId },
+};
+
+const metaKeywords = [...new Set([...keywords, ...BUSINESS_KEYWORDS])].join(", ");
 ---
 
 <!doctype html>
@@ -62,14 +95,23 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta name="keywords" content={metaKeywords} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="robots" content={noindex ? "noindex" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
+    <!-- Location, for local and "near me" searches -->
+    <meta name="geo.region" content="ET-AA" />
+    <meta name="geo.placename" content={c.city} />
+    <meta name="geo.position" content={`${c.map.lat};${c.map.lng}`} />
+    <meta name="ICBM" content={`${c.map.lat}, ${c.map.lng}`} />
+    <!-- Plain-language summary for AI assistants (llmstxt.org) -->
+    <link rel="alternate" type="text/markdown" href="/llms.txt" title="Summary for AI assistants" />
     <meta name="theme-color" content="#1a73e8" />
     <link rel="icon" type="image/png" href="/teamlogo.png" />
     <link rel="apple-touch-icon" href="/teamlogo.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
@@ -78,6 +120,8 @@ const jsonLd = {
     <meta name="twitter:card" content="summary" />
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(website)} />
+    {schema.map((item) => <script type="application/ld+json" set:html={JSON.stringify(item)} />)}
     <!-- Reveal animations hide content only when JavaScript runs -->
     <script is:inline>document.documentElement.classList.add("js");</script>
   </head>

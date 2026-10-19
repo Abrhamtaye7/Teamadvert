@@ -13,7 +13,7 @@ import { useInvalidatingMutation } from "../../lib/queries";
 import type { Customer } from "../../lib/types";
 import { CustomerFormDialog } from "../customers/CustomerForm";
 
-export type Lead = {
+type Lead = {
   id: number;
   name: string;
   phone: string;

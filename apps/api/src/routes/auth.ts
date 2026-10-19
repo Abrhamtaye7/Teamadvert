@@ -11,7 +11,7 @@ import { requireAuth } from "../middleware/auth";
 import type { AppEnv } from "../types";
 
 export const MAX_FAILED_ATTEMPTS = 5;
-export const LOCKOUT_MINUTES = 15;
+const LOCKOUT_MINUTES = 15;
 
 const INVALID_LOGIN = "Invalid username or PIN";
 

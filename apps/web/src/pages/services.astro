@@ -4,12 +4,18 @@ import Base from "../layouts/Base.astro";
 import CtaBand from "../components/CtaBand.astro";
 import PageHero from "../components/PageHero.astro";
 import ServicePicture from "../components/ServicePicture.astro";
+import { SERVICE_KEYWORDS, serviceUrl } from "../content/seo";
 import { SITE } from "../content/site";
 
 const tones = ["blue", "orange", "navy"] as const;
+const keywords = Object.values(SERVICE_KEYWORDS).map((k) => k.en[0]);
 ---
 
-<Base title="Signs, banners, printing & branding services" description={`Signs, banners, vehicle wraps, printing, stickers, event and office branding, design, gifts and laser engraving by ${SITE.name}, Addis Ababa.`}>
+<Base
+  title="Signs, banners, printing & branding services in Addis Ababa"
+  description={`Signs, banners, vehicle wraps, printing, stickers, event and office branding, design, gifts and laser engraving by ${SITE.name}, Addis Ababa.`}
+  keywords={keywords}
+>
   <PageHero eyebrow="What we do" title="Everything your brand needs," highlight="under one roof" intro="Everything you need to advertise your business — designed, produced and installed by one team.">
     <!-- One swipeable row on phones, wrapped chips from small tablets up -->
     <nav class="fade-up -mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" style="--delay:.3s" aria-label="Jump to a service">
@@ -39,9 +45,14 @@ const tones = ["blue", "orange", "navy"] as const;
                 {s.title}
               </h2>
               <p class="mt-3 text-lg text-slate-600">{s.summary}</p>
-              <a href="/contact/#quote" class="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-brand-600 px-6 font-semibold text-white transition hover:bg-brand-700">
-                Get a quote <ArrowRight class="size-4" aria-hidden="true" />
-              </a>
+              <div class="mt-6 flex flex-wrap gap-3">
+                <a href="/contact/#quote" class="inline-flex h-12 items-center gap-2 rounded-full bg-brand-600 px-6 font-semibold text-white transition hover:bg-brand-700">
+                  Get a quote <ArrowRight class="size-4" aria-hidden="true" />
+                </a>
+                <a href={serviceUrl(s.slug)} class="inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 font-semibold text-brand-950 ring-1 ring-slate-200 transition hover:ring-brand-300">
+                  More about {s.title.toLowerCase()}
+                </a>
+              </div>
             </div>
           </div>
           <ul class="mt-10 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">

@@ -3,7 +3,9 @@ import { count, eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Db } from "./client";
 import {
+  applyCounterStarts,
   businessYear,
+  COUNTER_STARTS,
   formatCode,
   formatYearlyNumber,
   nextCustomerCode,
@@ -79,15 +81,29 @@ describe("counters", () => {
     expect(value).toBe(1);
   });
 
-  it("formats document numbers like the legacy app", async () => {
+  it("formats document numbers: 4-digit proformas, 3-digit jobs", async () => {
     const date = new Date("2026-03-01T10:00:00Z");
-    expect(await nextProformaNumber(db, date)).toBe("TAPI-001-26");
-    expect(await nextProformaNumber(db, date)).toBe("TAPI-002-26");
+    expect(await nextProformaNumber(db, date)).toBe("TAPI-0001-26");
+    expect(await nextProformaNumber(db, date)).toBe("TAPI-0002-26");
     expect(await nextJobNumber(db, date)).toBe("TAJO-001-26");
-    expect(await nextProformaNumber(db, new Date("2027-01-02T10:00:00Z"))).toBe("TAPI-001-27");
+    expect(await nextProformaNumber(db, new Date("2027-01-02T10:00:00Z"))).toBe("TAPI-0001-27");
     expect(await nextCustomerCode(db)).toBe("CID0001");
     expect(formatYearlyNumber("TAPI", 1234, 26)).toBe("TAPI-1234-26");
     expect(formatCode("ITEM", 12)).toBe("ITEM0012");
+  });
+
+  it("continues from the previous system's numbers: TAPI-0520-26 and CID0520 come next", async () => {
+    const date = new Date("2026-06-01T10:00:00Z");
+    await applyCounterStarts(db);
+    expect(await nextProformaNumber(db, date)).toBe("TAPI-0520-26");
+    expect(await nextCustomerCode(db)).toBe("CID0520");
+    // Safe to repeat: a counter never moves backwards
+    await applyCounterStarts(db);
+    expect(await nextProformaNumber(db, date)).toBe("TAPI-0521-26");
+    expect(await nextCustomerCode(db)).toBe("CID0521");
+    // Other years and sequences are not affected
+    expect(await nextProformaNumber(db, new Date("2027-01-02T10:00:00Z"))).toBe("TAPI-0002-27");
+    expect(COUNTER_STARTS.map((s) => s.scope)).toEqual(["TAPI", "CID"]);
   });
 
   it("uses the Addis Ababa calendar year", () => {

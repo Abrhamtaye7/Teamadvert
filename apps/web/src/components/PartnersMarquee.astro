@@ -1,0 +1,70 @@
+---
+// Moving strip of partner logos, each linking to the partner's site. Data: SITE.partners in src/content/site.ts,
+// logo files in src/assets/partners/. Renders nothing while the list is empty.
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+import { Pause, Play } from "@lucide/astro";
+import { SITE } from "../content/site";
+
+const logos = import.meta.glob<ImageMetadata>("../assets/partners/*.{svg,png,jpg,jpeg,webp}", { eager: true, import: "default" });
+const partners = SITE.partners.map((p) => {
+  const logo = Object.entries(logos).find(([path]) => path.split("/").pop() === p.logo)?.[1];
+  if (!logo) throw new Error(`Partner logo "${p.logo}" for ${p.name} is missing from src/assets/partners/`);
+  // Round and square emblems look small next to wide wordmarks at the same height
+  const height = p.dark ? "h-8" : logo.width / logo.height < 1.6 ? "h-16" : "h-14";
+  return { ...p, logo, height };
+});
+
+// The track scrolls by half its width, so each half must be wider than the screen: repeat short lists.
+const half = Array.from({ length: Math.ceil(10 / Math.max(partners.length, 1)) }, () => partners).flat();
+---
+
+{
+  partners.length > 0 && (
+    <section class="py-16 md:py-20" aria-labelledby="partners-title">
+      <div class="container-site reveal text-center">
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-accent-700">Our partners</p>
+        <h2 id="partners-title" class="mt-3 text-2xl font-extrabold tracking-tight text-brand-950 sm:text-4xl">
+          Trusted by <span class="text-brand-600">businesses across Ethiopia</span>
+        </h2>
+      </div>
+      <div class="marquee partners-marquee relative mt-10">
+        <!-- Moving content must be pausable (WCAG 2.2.2) -->
+        <button
+          type="button"
+          class="marquee-toggle absolute right-2 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-brand-950 text-white shadow-lg"
+          aria-pressed="false"
+          aria-label="Pause the moving partners strip"
+          data-strip="partners"
+        >
+          <Pause class="pause-icon size-4" aria-hidden="true" />
+          <Play class="play-icon hidden size-4" aria-hidden="true" />
+        </button>
+        <!-- Logos fade out at the screen edges; the pause button sits outside the fade -->
+        <div class="partners-fade overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+          <ul class="marquee-track flex w-max items-center">
+            {
+              [...half, ...half].map((p, i) => {
+                // Only the first copy of each logo is announced and reachable by keyboard
+                const copy = i >= partners.length;
+                return (
+                  <li class="partner-logo px-8 sm:px-10" aria-hidden={copy ? "true" : undefined}>
+                    <a
+                      href={p.url}
+                      target="_blank"
+                      rel="noopener"
+                      tabindex={copy ? -1 : undefined}
+                      class:list={["block rounded-lg p-2 opacity-80 transition hover:opacity-100 focus-visible:opacity-100", p.dark && "bg-brand-950 px-4"]}
+                    >
+                      <Image src={p.logo} alt={p.name} height={128} class:list={["w-auto max-w-48 object-contain", p.height]} />
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}

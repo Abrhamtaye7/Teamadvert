@@ -32,7 +32,7 @@ const tones = {
   purple: "bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
   yellow: "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
 };
-export type Tone = keyof typeof tones;
+type Tone = keyof typeof tones;
 
 export function Badge({ tone = "gray", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
   return (

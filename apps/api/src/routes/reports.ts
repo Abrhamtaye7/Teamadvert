@@ -87,4 +87,3 @@ export const reportRoutes = new Hono<AppEnv>()
     });
   });
 
-export { monthKey, monthStart };

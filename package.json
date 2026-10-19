@@ -10,6 +10,7 @@
     "dev:api": "npm run dev -w @teamadvert/api",
     "dev:office": "npm run dev -w @teamadvert/office",
     "dev:web": "npm run dev -w @teamadvert/web",
+    "telegram": "npm run telegram -w @teamadvert/api --",
     "build": "npm run build -w @teamadvert/web && npm run build -w @teamadvert/office && node tools/assemble-site.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

@@ -89,6 +89,35 @@ The cron job needs `DATABASE_URL` and `BACKUP_DIR` too: put them in `~/teamadver
 automatically; set its permissions to 600). Admins can also run a backup from the API (`POST /api/backups/run`).
 Each backup is a gzipped JSON dump of every table except login sessions. (**verify** the nodevenv path.)
 
+## 7. Telegram bot (optional)
+
+The bot does what `/office` does, with commands (`/dashboard`, `/newproforma`, `/job`, `/pay`, … — `/help` lists all).
+Only the Telegram accounts in `TELEGRAM_USERS` can use it, and each acts as the office user it is linked to: same
+role, same permissions, and every change appears in the audit log under that user. It only answers in private
+chats. Telegram calls the API (`/api/telegram/webhook`) for each message, so nothing runs in the background.
+
+1. In Telegram, talk to **@BotFather** → `/newbot` → copy the token.
+2. Get each person's numeric Telegram ID: they send any message to **@userinfobot**. (Once the bot runs, it also
+   tells anyone who isn't linked yet their ID.)
+3. Add to the Node.js App's environment variables (and `~/teamadvert-api/.env`, which the setup command reads):
+
+   | Name | Value |
+   |---|---|
+   | `TELEGRAM_BOT_TOKEN` | the token from BotFather |
+   | `TELEGRAM_WEBHOOK_SECRET` | 16+ random letters/digits (e.g. `openssl rand -hex 24`) |
+   | `TELEGRAM_USERS` | `telegramId:officeUsername` pairs, e.g. `123456789:admin,987654321:sara` |
+
+4. Restart the app, then in the cPanel Terminal (inside the virtual environment):
+   ```bash
+   cd ~/teamadvert-api
+   node dist/telegram-cli.mjs webhook   # points Telegram at https://teamadvertplc.com/api/telegram/webhook
+   node dist/telegram-cli.mjs info      # shows the webhook and any delivery error
+   ```
+   Run `webhook` again after changing `TELEGRAM_USERS` (it reloads the command menu for those chats).
+
+Messages that contain a PIN (`/newuser`, `/resetpin`, `/changepin`) are deleted from the chat after use. To stop the
+bot, remove `TELEGRAM_BOT_TOKEN` and run `node dist/telegram-cli.mjs unwebhook` first.
+
 ## Local development
 
 ```bash
@@ -99,4 +128,6 @@ npm run db:migrate && npm run db:seed
 npm run dev:api          # http://localhost:4000/api
 npm run dev:office       # http://localhost:5173/office/ (proxies /api)
 npm run dev:web          # http://localhost:4321
+npm run telegram -- poll # Telegram bot without a public URL: forwards messages to the local API (needs the
+                         # TELEGRAM_* variables in .env; run `webhook` again on the server afterwards)
 ```

@@ -1,8 +1,7 @@
 // Shapes returned by the API (dates arrive as ISO strings).
 
-export type Role = "Admin" | "Finance" | "Sales" | "Designer" | "Production";
 
-export type PublicUser = { id: number; username: string };
+type PublicUser = { id: number; username: string };
 
 export type SessionUser = {
   id: number;
@@ -15,9 +14,9 @@ export type SessionUser = {
 
 export type Paged<T> = { data: T[]; total: number; page: number; pageSize: number };
 
-export type Address = { region?: string; city?: string; subcity?: string; woreda?: string; house?: string };
+type Address = { region?: string; city?: string; subcity?: string; woreda?: string; house?: string };
 
-export type CreditStanding = "Good" | "Warning" | "Suspended";
+type CreditStanding = "Good" | "Warning" | "Suspended";
 
 export type Customer = {
   id: number;
@@ -36,11 +35,11 @@ export type Customer = {
   _count?: { proformas: number; jobs: number };
 };
 
-export type Note = { id: number; note?: string; content?: string; createdAt: string; user: PublicUser | null };
+type Note = { id: number; note?: string; content?: string; createdAt: string; user: PublicUser | null };
 
-export type ProformaStatus = "draft" | "approved" | "converted" | "expired";
+type ProformaStatus = "draft" | "approved" | "converted" | "expired";
 
-export type ProformaLine = {
+type ProformaLine = {
   id: number;
   itemId: number | null;
   name: string;
@@ -81,9 +80,8 @@ export type ProformaPrint = {
 };
 
 export type JobStatus = "pending_approval" | "approved" | "in_progress" | "completed" | "finance_review" | "closed";
-export type Priority = "high" | "normal" | "low";
 
-export type JobLine = {
+type JobLine = {
   id: number;
   itemId: number | null;
   name: string;

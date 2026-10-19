@@ -2,7 +2,7 @@ import type { SessionUser } from "../lib/types";
 import { useSession } from "./session";
 
 /** Mirrors the API's role checks, so the UI only offers actions the server will accept. */
-export const PERMISSIONS = {
+const PERMISSIONS = {
   "customer.edit": ["Admin", "Sales"],
   "supplier.edit": ["Admin", "Sales", "Finance"],
   "item.edit": ["Admin", "Sales", "Finance"],
@@ -19,7 +19,7 @@ export const PERMISSIONS = {
   "backups.run": ["Admin"],
 } as const;
 
-export type Permission = keyof typeof PERMISSIONS;
+type Permission = keyof typeof PERMISSIONS;
 
 export const can = (user: SessionUser | null, permission: Permission) =>
   !!user && (PERMISSIONS[permission] as readonly string[]).includes(user.role);

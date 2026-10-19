@@ -13,7 +13,9 @@ import { proformaRoutes, publicProformaRoutes } from "./routes/proformas";
 import { reportRoutes } from "./routes/reports";
 import { searchRoutes } from "./routes/search";
 import { supplierRoutes } from "./routes/suppliers";
+import { telegramRoutes } from "./routes/telegram";
 import { userRoutes } from "./routes/users";
+import { createBot } from "./telegram/bot";
 import type { AppEnv, Deps } from "./types";
 
 /** The API, mounted at /api. Dependencies are injected so tests can use a test database. */
@@ -49,6 +51,13 @@ export function createApp(deps: Deps) {
   app.route("/public", publicRoutes);
   app.route("/public/proformas", publicProformaRoutes);
   app.route("/leads", leadRoutes);
+
+  const { telegram } = deps.config;
+  if (telegram && deps.telegram) {
+    // The bot runs its commands through this same app, as the linked office user
+    const bot = createBot({ db: deps.db, config: { ...deps.config, telegram }, telegram: deps.telegram, callApi: (req) => app.fetch(req) });
+    app.route("/telegram", telegramRoutes(bot, telegram.webhookSecret));
+  }
 
   app.notFound((c) => c.json({ message: "Not found" }, 404));
   app.onError((err, c) => {

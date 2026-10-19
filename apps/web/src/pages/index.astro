@@ -22,8 +22,10 @@ import {
 } from "@lucide/astro";
 import hero from "../assets/hero-showcase.jpg";
 import Base from "../layouts/Base.astro";
+import PartnersMarquee from "../components/PartnersMarquee.astro";
 import ProcessSteps from "../components/ProcessSteps.astro";
 import ServicePicture from "../components/ServicePicture.astro";
+import { BUSINESS_KEYWORDS_AMHARIC, serviceUrl } from "../content/seo";
 import { SITE, telegramHref, telHref, whatsappHref } from "../content/site";
 
 const [mainPhone] = SITE.contact.phones;
@@ -68,7 +70,7 @@ const marqueeWords = SITE.services.flatMap((s) => s.items.map((i) => i.title));
 let w = 0;
 ---
 
-<Base title={SITE.name}>
+<Base title={SITE.name} keywords={BUSINESS_KEYWORDS_AMHARIC}>
   <!-- ===== Hero ===== -->
   <section class="relative isolate overflow-hidden bg-gradient-to-b from-brand-50 to-white">
     <div class="container-site grid items-center gap-10 py-14 md:py-20 lg:grid-cols-[1fr_1.1fr] lg:py-24">
@@ -163,6 +165,7 @@ let w = 0;
       class="marquee-toggle absolute right-2 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-brand-950 text-white shadow-lg"
       aria-pressed="false"
       aria-label="Pause the moving products strip"
+      data-strip="products"
     >
       <Pause class="pause-icon size-4" aria-hidden="true" />
       <Play class="play-icon hidden size-4" aria-hidden="true" />
@@ -187,7 +190,7 @@ let w = 0;
         {
           collage.map((s, i) => (
             <a
-              href={`/services/#${s.slug}`}
+              href={serviceUrl(s.slug)}
               class:list={[
                 "reveal reveal-zoom group relative block overflow-hidden rounded-3xl shadow-lg",
                 i === 0 ? "row-span-2 min-h-[22rem] sm:min-h-[30rem]" : "min-h-[10.5rem] sm:min-h-[14.5rem]",
@@ -216,7 +219,7 @@ let w = 0;
           {
             SITE.services.slice(3).map((s) => (
               <li>
-                <a href={`/services/#${s.slug}`} class="inline-flex min-h-11 items-center rounded-full bg-white px-4 text-sm font-medium text-slate-700 ring-1 ring-slate-200 transition hover:text-brand-700 hover:ring-brand-300">
+                <a href={serviceUrl(s.slug)} class="inline-flex min-h-11 items-center rounded-full bg-white px-4 text-sm font-medium text-slate-700 ring-1 ring-slate-200 transition hover:text-brand-700 hover:ring-brand-300">
                   {s.title}
                 </a>
               </li>
@@ -244,7 +247,7 @@ let w = 0;
         {
           popular.map(({ service: s, item }, i) => (
             <li class="reveal" style={`--i:${i % 4}`}>
-              <a href={`/services/#${s.slug}`} class="group block h-full rounded-3xl bg-white p-3 ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-4">
+              <a href={serviceUrl(s.slug)} class="group block h-full rounded-3xl bg-white p-3 ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-4">
                 <div class="zoom-media overflow-hidden rounded-2xl">
                   <ServicePicture photoKey={`${s.slug}--${item.slug}`} icon={item.icon} alt="" tone={(["blue", "navy", "orange"] as const)[i % 3]} size="sm" />
                 </div>
@@ -268,7 +271,7 @@ let w = 0;
             { s: service("vehicle-branding"), photo: "vehicle-branding", bg: "bg-brand-700", eyebrow: "Moving adverts", text: "text-white", sub: "text-brand-100", btn: "ring-white/60 group-hover:bg-white group-hover:text-brand-800" },
             { s: service("promotional"), photo: "promotional--bags", bg: "bg-accent-500", eyebrow: "For staff & events", text: "text-brand-950", sub: "text-brand-950/80", btn: "ring-brand-950/50 group-hover:bg-brand-950 group-hover:text-white" },
           ].map((p, i) => (
-            <a href={`/services/#${p.s.slug}`} class:list={["reveal group relative flex min-h-60 overflow-hidden rounded-3xl", p.bg]} style={`--i:${i}`}>
+            <a href={serviceUrl(p.s.slug)} class:list={["reveal group relative flex min-h-60 overflow-hidden rounded-3xl", p.bg]} style={`--i:${i}`}>
               <div class="zoom-media absolute inset-y-0 right-0 w-1/2 [mask-image:linear-gradient(to_right,transparent,black_45%)]">
                 <ServicePicture fill photoKey={p.photo} icon={p.s.icon} alt="" tone="navy" size="sm" />
               </div>
@@ -312,6 +315,9 @@ let w = 0;
       </ul>
     </div>
   </section>
+
+  <!-- ===== Partners ===== -->
+  <PartnersMarquee />
 
   <!-- ===== Bulk-order banner ===== -->
   <section class="relative isolate overflow-hidden bg-brand-950 py-20 text-center text-white md:py-28">

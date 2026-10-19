@@ -1,7 +1,6 @@
 const TZ = "Africa/Addis_Ababa";
 
 const moneyFmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const numberFmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 const dateFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "2-digit", month: "short", year: "numeric" });
 const dateTimeFmt = new Intl.DateTimeFormat("en-GB", {
   timeZone: TZ,
@@ -18,7 +17,6 @@ const toNumber = (v: number | string | null | undefined) => (v === null || v ===
 /** "ETB 1,234.50" */
 export const money = (v: number | string | null | undefined) => `ETB ${moneyFmt.format(toNumber(v))}`;
 export const amount = (v: number | string | null | undefined) => moneyFmt.format(toNumber(v));
-export const num = (v: number | string | null | undefined) => numberFmt.format(toNumber(v));
 
 /** "16 Oct 2026" in Addis Ababa time */
 export const date = (v: string | Date | null | undefined) => (v ? dateFmt.format(new Date(v)) : "—");

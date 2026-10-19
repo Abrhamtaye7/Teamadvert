@@ -117,7 +117,7 @@ describe("proformas", () => {
       "Designer",
     );
     expect(res.status).toBe(201);
-    expect(res.json).toMatchObject({ number: `TAPI-001-${yy}`, status: "draft", preparedBy: { username: "dani" } });
+    expect(res.json).toMatchObject({ number: `TAPI-0001-${yy}`, status: "draft", preparedBy: { username: "dani" } });
     expect(res.json.customer.customerId).toBe("CID0002");
     expect(res.json.items.map((i: any) => i.total)).toEqual([1150, 500]);
     expect(res.json.amountInWords).toBe("one thousand six hundred fifty birr");
@@ -157,7 +157,7 @@ describe("proformas", () => {
     expect(check.headers.get("cache-control")).toBe("no-store");
     expect(check.json).toMatchObject({
       status: "valid",
-      number: `TAPI-001-${yy}`,
+      number: `TAPI-0001-${yy}`,
       validity: 15,
       customer: { name: "Hana Bekele", phones: ["0933000000"], customerId: "CID0002" },
       items: [
@@ -233,7 +233,7 @@ describe("proforma QR status", () => {
 
 describe("jobs", () => {
   it("rejects a second job for the same proforma", async () => {
-    const res = await post("/api/jobs", { customerId: ids.customer, proformaNumber: `TAPI-001-${yy}`, jobItems: [] }, "Designer");
+    const res = await post("/api/jobs", { customerId: ids.customer, proformaNumber: `TAPI-0001-${yy}`, jobItems: [] }, "Designer");
     expect(res.status).toBe(409);
   });
 

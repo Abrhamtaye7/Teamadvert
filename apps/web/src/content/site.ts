@@ -184,6 +184,39 @@ export const SITE = {
     },
   ],
 
+  /**
+   * Partner logos in the moving strip on the home page (leave the array empty to hide it).
+   * Put each logo in src/assets/partners/ and give its file name here; clicking it opens `url`.
+   * Set `dark: true` for a logo with white parts, so it is shown on a dark tile.
+   * Commented-out partners are waiting for a logo and website: fill them in, then remove the "//".
+   */
+  partners: [
+    { name: "Embassy of Nicaragua", url: "https://www.facebook.com/embaniclondon/", logo: "embassy-of-nicaragua.png" },
+    { name: "Shega Events", url: "https://www.instagram.com/shega_events/", logo: "shega-events.png" },
+    { name: "Global Black Centre", url: "https://www.globalblackcentre.org/", logo: "global-black-centre.png" },
+    // { name: "DRAZ Group", url: "http://www.draz.com.cn/en/", logo: "" },
+    { name: "Nib International Bank", url: "https://www.nibbanksc.com/", logo: "nib-bank.png" },
+    // { name: "Walia Technologies", url: "", logo: "" },
+    { name: "Moti Engineering", url: "https://www.motiengineering.com/", logo: "moti-engineering.png" },
+    { name: "STEM Synergy", url: "https://stemsynergy.org/", logo: "stem-synergy.png", dark: true },
+    { name: "Oromia Construction Corporation (OCC)", url: "https://occ-oro.com/", logo: "occ.png" },
+    { name: "Baro Pharmaceuticals", url: "https://baropharma.com/", logo: "baro-pharmaceutical.png", dark: true },
+    { name: "MSI Ethiopia (Marie Stopes)", url: "https://mariestopes.org.et/", logo: "msi-ethiopia.png" },
+    { name: "Ethiopian Sugar Industry Group", url: "https://etsugar.com/", logo: "ethiopian-sugar.png" },
+    // { name: "EDA", url: "", logo: "" },
+    // { name: "ORB Trading", url: "", logo: "" },
+    { name: "Arerti Ceramics", url: "https://www.facebook.com/Arerticeramic/", logo: "arerti-ceramics.png" },
+    // { name: "Jiangxi Water and Hydropower Construction (JWHC)", url: "http://www.jwhc.net/", logo: "" },
+    { name: "Balmland Trading", url: "https://visitbalmland.com/", logo: "balmland.png" },
+    { name: "Global General Construction", url: "https://globalgeneralconstructionet.com/", logo: "global-general-construction.png" },
+    { name: "Rammis Bank", url: "https://rammisbank.et/", logo: "rammis-bank.png" },
+    // { name: "Habesha Pharma", url: "", logo: "" },
+    { name: "Omo Bank", url: "https://omobanksc.com/", logo: "omo-bank.png" },
+    { name: "Coopera Trading", url: "https://cooperatrading.com/", logo: "coopera-trading.svg" },
+    { name: "Zuse Bingo", url: "https://zusebingo.com/", logo: "zuse-bingo.png" },
+    { name: "Raziel Code Craft", url: "https://razielcc.com/", logo: "raziel-code-craft.svg" },
+  ] as { name: string; url: string; logo: string; dark?: boolean }[],
+
   /** How a job works, shown on the home and about pages. */
   process: [
     { title: "Tell us what you need", text: "Call, WhatsApp, Telegram or send the quote form with sizes and quantities." },
@@ -194,9 +227,8 @@ export const SITE = {
 };
 
 export type Service = (typeof SITE.services)[number];
-export type SubService = Service["items"][number];
 
-export const isPlaceholder = (value: string) => value.startsWith("TODO:");
+const isPlaceholder = (value: string) => value.startsWith("TODO:");
 /** A value to show, or undefined while it is empty or still a placeholder. */
 export const ready = (value: string) => (value && !isPlaceholder(value) ? value : undefined);
 

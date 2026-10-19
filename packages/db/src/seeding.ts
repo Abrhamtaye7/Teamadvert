@@ -1,5 +1,6 @@
 import { count, eq } from "drizzle-orm";
 import type { Db } from "./client";
+import { applyCounterStarts, COUNTER_STARTS } from "./counters";
 import { hashPin, isValidPin } from "./pin";
 import { accessRoles, roles, userAccessRoles, users, type Permissions } from "./schema";
 
@@ -28,10 +29,14 @@ export const defaultAccessRoles = [
 export type SeedResult = { adminCreated: boolean };
 
 /**
- * Idempotent: upserts roles and access roles. Creates the first admin (with every access role)
- * only when there are no users yet, which requires `adminPin`.
+ * Idempotent: sets the numbering start points (see COUNTER_STARTS), upserts roles and access roles. Creates the
+ * first admin (with every access role) only when there are no users yet, which requires `adminPin`.
  */
-export async function seedDatabase(db: Db, { adminPin }: { adminPin?: string } = {}): Promise<SeedResult> {
+export async function seedDatabase(
+  db: Db,
+  { adminPin, counterStarts = COUNTER_STARTS }: { adminPin?: string; counterStarts?: typeof COUNTER_STARTS } = {},
+): Promise<SeedResult> {
+  await applyCounterStarts(db, counterStarts);
   for (const role of defaultRoles) {
     await db
       .insert(roles)

@@ -1,6 +1,6 @@
 // Thin fetch wrapper for the same-origin API. The session is an httpOnly cookie, sent automatically.
 
-export type FieldIssue = { path: (string | number)[]; message: string };
+type FieldIssue = { path: (string | number)[]; message: string };
 
 export class ApiError extends Error {
   readonly status: number;
@@ -31,7 +31,7 @@ function buildUrl(path: string, query?: Query) {
   return url.pathname + url.search;
 }
 
-export async function request<T>(method: string, path: string, { body, query }: { body?: unknown; query?: Query } = {}): Promise<T> {
+async function request<T>(method: string, path: string, { body, query }: { body?: unknown; query?: Query } = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(buildUrl(path, query), {

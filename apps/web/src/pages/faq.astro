@@ -1,0 +1,60 @@
+---
+// Frequently asked questions. Linked from the footer only. Each service page also answers its own questions.
+import { ArrowUpRight } from "@lucide/astro";
+import Base from "../layouts/Base.astro";
+import CtaBand from "../components/CtaBand.astro";
+import Faq from "../components/Faq.astro";
+import PageHero from "../components/PageHero.astro";
+import { FAQS, serviceUrl } from "../content/seo";
+import { SITE } from "../content/site";
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE.url}/` },
+      { "@type": "ListItem", position: 2, name: "FAQ", item: `${SITE.url}/faq/` },
+    ],
+  },
+];
+---
+
+<Base
+  title="Frequently asked questions"
+  description={`Answers about ${SITE.name}: where we are, how to get a quote and proforma with VAT, design, installation and work across Ethiopia.`}
+  keywords={["Team Advert FAQ", "how to order signage Addis Ababa", "printing quote Addis Ababa"]}
+  schema={schema}
+>
+  <PageHero
+    eyebrow="FAQ"
+    title="Questions"
+    highlight="& answers"
+    intro="Where we are, how quotes work, design, installation and delivery — the questions customers ask us most."
+  />
+
+  <Faq faqs={FAQS} eyebrow="General" title="Ordering from" highlight={SITE.shortName} />
+
+  <section class="bg-slate-50 py-16 md:py-20" aria-labelledby="service-questions-title">
+    <div class="container-site">
+      <h2 id="service-questions-title" class="reveal text-2xl font-extrabold tracking-tight text-brand-950 sm:text-3xl">
+        Questions about <span class="text-brand-600">a service</span>
+      </h2>
+      <p class="reveal mt-2 text-slate-600">Each service page answers where to get it, what it costs and how it is made.</p>
+      <ul class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          SITE.services.map((s, i) => (
+            <li class="reveal" style={`--i:${i % 3}`}>
+              <a href={`${serviceUrl(s.slug)}#faq`} class="group flex min-h-14 items-center justify-between gap-3 rounded-2xl bg-white px-5 py-4 font-semibold text-brand-950 ring-1 ring-slate-200 transition hover:ring-brand-300">
+                {s.title}
+                <ArrowUpRight class="size-4 shrink-0 text-brand-600 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Still have a question?" text="Call, WhatsApp or Telegram us — or send the quote form and we'll reply with a proforma." />
+</Base>

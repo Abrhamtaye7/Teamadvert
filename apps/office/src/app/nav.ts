@@ -30,7 +30,7 @@ export type NavItem = {
   end?: boolean;
 };
 
-export const NAV: NavItem[] = [
+const NAV: NavItem[] = [
   { to: "/", label: "Dashboard", short: "Home", icon: LayoutDashboard, access: "dashboard", primary: true, end: true },
   { to: "/proformas", label: "Proformas", icon: FileText, access: "proformas", primary: true },
   { to: "/jobs", label: "Job orders", short: "Jobs", icon: Briefcase, access: "jobs", primary: true },

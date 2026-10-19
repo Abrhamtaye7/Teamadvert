@@ -41,7 +41,7 @@ export function customerSnapshot(c: CustomerRow) {
   };
 }
 
-export type NewCustomerInput = {
+type NewCustomerInput = {
   name: string;
   company?: string;
   phones?: string[];

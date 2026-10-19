@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { EmptyState, ErrorState, Spinner } from "./display";
 
-export type Column<T> = {
+type Column<T> = {
   key: string;
   header: string;
   cell: (row: T) => ReactNode;

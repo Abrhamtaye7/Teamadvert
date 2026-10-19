@@ -9,6 +9,7 @@ import { createApp } from "./app";
 import { loadConfig } from "./config";
 import { createCbeVerifier } from "./lib/cbe";
 import { FixedWindowLimiter } from "./lib/rateLimit";
+import { createTelegramClient } from "./telegram/client";
 
 loadRootEnv();
 const config = loadConfig();
@@ -20,7 +21,9 @@ const loginLimiter = new FixedWindowLimiter(20, 15 * 60_000);
 const quoteLimiter = new FixedWindowLimiter(5, 60 * 60_000);
 // Scanning a QR code is one request; 60 per 15 minutes is plenty for a person and stops token guessing
 const verifyLimiter = new FixedWindowLimiter(60, 15 * 60_000);
-const api = createApp({ db, config, loginLimiter, quoteLimiter, verifyLimiter, cbeVerifier: createCbeVerifier(config.cbe) });
+// Telegram bot: answers at /api/telegram/webhook when TELEGRAM_BOT_TOKEN is set (see docs/SETUP.md)
+const telegram = config.telegram ? createTelegramClient(config.telegram.token) : undefined;
+const api = createApp({ db, config, loginLimiter, quoteLimiter, verifyLimiter, cbeVerifier: createCbeVerifier(config.cbe), telegram });
 
 const root = new Hono();
 root.route("/", api);

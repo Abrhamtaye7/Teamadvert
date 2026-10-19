@@ -3,6 +3,7 @@ import type { Config } from "./config";
 import type { CbeVerifier } from "./lib/cbe";
 import type { FixedWindowLimiter } from "./lib/rateLimit";
 import type { AuthUser } from "./lib/sessions";
+import type { TelegramClient } from "./telegram/client";
 
 export type Deps = {
   db: Db;
@@ -13,6 +14,8 @@ export type Deps = {
   /** Public proforma QR checks: per-IP limit */
   verifyLimiter: FixedWindowLimiter;
   cbeVerifier: CbeVerifier;
+  /** Sends the Telegram bot's replies; the bot is on when this and config.telegram are set */
+  telegram?: TelegramClient;
 };
 
 export type AppEnv = {

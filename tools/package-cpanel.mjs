@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "dist", "cpanel");
 const api = path.join(out, "teamadvert-api");
 
-const required = ["dist/site/index.html", "dist/site/office/index.html", "apps/api/dist/server.mjs", "apps/api/dist/db-cli.mjs", "apps/api/dist/backup-cli.mjs"];
+const required = ["dist/site/index.html", "dist/site/office/index.html", "apps/api/dist/server.mjs", "apps/api/dist/db-cli.mjs", "apps/api/dist/backup-cli.mjs", "apps/api/dist/telegram-cli.mjs"];
 for (const file of required) {
   if (!existsSync(path.join(root, file))) {
     console.error(`Missing ${file}. Run the builds first (npm run package:cpanel does this).`);

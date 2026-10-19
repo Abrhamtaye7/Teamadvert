@@ -11,7 +11,7 @@ export type AuthUser = {
   permissions: Permissions;
 };
 
-export type SessionPolicy = { idleMinutes: number; maxHours: number };
+type SessionPolicy = { idleMinutes: number; maxHours: number };
 
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
