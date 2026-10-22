@@ -1,0 +1,51 @@
+---
+// Product catalogue as a real HTML table (category · products · production methods): easy to scan for people,
+// and the format search engines and AI assistants extract most reliably.
+import type { CatalogCategory } from "../content/catalog";
+
+interface Props {
+  categories: CatalogCategory[];
+  caption: string;
+}
+
+const { categories, caption } = Astro.props;
+---
+
+<div class="reveal overflow-x-auto rounded-3xl bg-white ring-1 ring-slate-200">
+  <table class="w-full min-w-[40rem] text-left text-sm">
+    <caption class="sr-only">{caption}</caption>
+    <thead class="bg-slate-50 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+      <tr>
+        <th scope="col" class="px-5 py-4">Category</th>
+        <th scope="col" class="px-5 py-4">Core products</th>
+        <th scope="col" class="px-5 py-4">Production methods</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 align-top">
+      {
+        categories.map((c) => (
+          <tr id={c.slug} class="scroll-mt-24">
+            <th scope="row" class="w-1/5 px-5 py-5 font-bold text-brand-950">{c.name}</th>
+            <td class="px-5 py-5">
+              <ul class="space-y-1.5 text-slate-700">
+                {c.products.map((p) => (
+                  <li class="flex gap-2">
+                    <span class="mt-2 size-1.5 shrink-0 rounded-full bg-accent-500" aria-hidden="true" />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </td>
+            <td class="w-1/4 px-5 py-5">
+              <ul class="flex flex-wrap gap-1.5">
+                {c.methods.map((m) => (
+                  <li class="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-800">{m}</li>
+                ))}
+              </ul>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

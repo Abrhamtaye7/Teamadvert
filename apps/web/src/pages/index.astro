@@ -25,7 +25,7 @@ import Base from "../layouts/Base.astro";
 import PartnersMarquee from "../components/PartnersMarquee.astro";
 import ProcessSteps from "../components/ProcessSteps.astro";
 import ServicePicture from "../components/ServicePicture.astro";
-import { BUSINESS_KEYWORDS_AMHARIC, serviceUrl } from "../content/seo";
+import { addressWithLandmark, BUSINESS_KEYWORDS_AMHARIC, openingText, serviceUrl } from "../content/seo";
 import { SITE, telegramHref, telHref, whatsappHref } from "../content/site";
 
 const [mainPhone] = SITE.contact.phones;
@@ -85,7 +85,8 @@ let w = 0;
           </span>
         </h1>
         <p class="fade-up mt-5 max-w-lg text-lg text-slate-600" style="--delay:.65s">
-          Designed, printed and installed by one team in Addis Ababa — from a box of business cards to a whole fleet of branded vehicles.
+          {SITE.name} designs, prints and installs signs, banners, vehicle branding and printed materials on {addressWithLandmark()} — from
+          a box of business cards to a whole fleet of branded vehicles. Open {openingText()}.
         </p>
         <div class="fade-up mt-8 flex flex-wrap gap-3" style="--delay:.8s">
           <a href="/contact/#quote" class="group inline-flex h-13 items-center gap-2 rounded-full bg-brand-600 px-7 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition hover:bg-brand-700">

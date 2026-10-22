@@ -1,7 +1,8 @@
 // /llms.txt (https://llmstxt.org): a plain-language summary for AI assistants such as ChatGPT, Gemini, Perplexity
 // and Claude, so they describe the company correctly and link to the right pages. Built from the site's content.
 import type { APIRoute } from "astro";
-import { FAQS, SERVICE_KEYWORDS, serviceUrl } from "../content/seo";
+import { CATALOG } from "../content/catalog";
+import { businessCapsule, FAQS, openingText, SERVICE_KEYWORDS, serviceUrl } from "../content/seo";
 import { fullAddress, SITE } from "../content/site";
 
 const abs = (path: string) => new URL(path, SITE.url).href;
@@ -11,12 +12,13 @@ export const GET: APIRoute = () => {
   const text = [
     `# ${SITE.name}`,
     "",
-    `> ${SITE.description}`,
+    `> ${businessCapsule()}`,
     "",
     ...SITE.about.map((p) => `${p}\n`),
     "## Key facts",
     "",
-    `- Location: ${fullAddress()} (${c.cityLocal})`,
+    `- Location: ${fullAddress()}, ${c.landmark} (${c.cityLocal})`,
+    `- Opening hours: ${openingText()}; closed Sunday`,
     `- Map: ${c.mapUrl}`,
     `- Phone: ${c.phones.join(", ")}`,
     `- WhatsApp: https://wa.me/${c.whatsapp}`,
@@ -33,6 +35,9 @@ export const GET: APIRoute = () => {
       return `- [${s.title}](${abs(serviceUrl(s.slug))}): ${s.summary} Includes: ${s.items.map((i) => i.title).join(", ")}.${also}`;
     }),
     "",
+    "## Products and production methods",
+    "",
+    ...CATALOG.flatMap((cat) => [`### ${cat.name}`, "", ...cat.products.map((p) => `- ${p}`), "", `Production methods: ${cat.methods.join(", ")}.`, ""]),
     "## How ordering works",
     "",
     ...SITE.process.map((step, i) => `${i + 1}. ${step.title}: ${step.text}`),
@@ -45,6 +50,7 @@ export const GET: APIRoute = () => {
     "",
     `- [Home](${abs("/")})`,
     `- [All services](${abs("/services/")})`,
+    `- [All products and production methods](${abs("/products/")})`,
     `- [About](${abs("/about/")})`,
     `- [Contact and quote request](${abs("/contact/")})`,
     `- [Frequently asked questions](${abs("/faq/")})`,

@@ -66,12 +66,38 @@ export const SERVICE_KEYWORDS: Record<string, { en: string[]; am: string[] }> = 
 
 const services = SITE.services.map((s) => s.title.toLowerCase()).join(", ");
 const [phone] = SITE.contact.phones;
+const c = SITE.contact;
+const { days, opens, closes } = c.openingHours;
+
+/** "Monday–Saturday, 8:00–22:00" */
+export const openingText = () => `${days[0]}–${days[days.length - 1]}, ${opens.replace(/^0/, "")}–${closes.replace(/^0/, "")}`;
+
+/** "Gabon St, Kirkos Sub-city (behind Bole Mega), Addis Ababa" */
+export const addressWithLandmark = () => `${c.address} (${c.landmark}), ${c.city}`;
+
+/**
+ * "Answer capsule": one self-contained paragraph that defines the business, for the top of the home page and for
+ * search engines and AI assistants to quote. Facts only, all from site.ts.
+ */
+export const businessCapsule = () =>
+  `${SITE.name} is an advertising, signage and printing company on ${addressWithLandmark()}, Ethiopia. ` +
+  `We design, produce and install ${services}, with a free itemised proforma including VAT for every order. ` +
+  `Open ${openingText()}.`;
+
+/** The same for one service, shown under the service page's main heading. */
+export const serviceCapsule = (s: Service) =>
+  `${SITE.name} makes ${s.title.toLowerCase()} in Addis Ababa: ${s.items.map((i) => i.title).join(", ")}. ` +
+  `Visit us on ${addressWithLandmark()} (${openingText()}) or call ${phone}; every quote is an itemised proforma with VAT.`;
 
 /** General questions, shown on the FAQ page (/faq/) and in llms.txt. */
 export const FAQS: Faq[] = [
   {
     q: `Where is ${SITE.name} located?`,
-    a: `${SITE.name} is at ${fullAddress()}. Call ${phone} or open the map on our Contact page for directions.`,
+    a: `${SITE.name} is at ${fullAddress()}, ${c.landmark}. Call ${phone} or open the map on our Contact page for directions.`,
+  },
+  {
+    q: `When is ${SITE.shortName} open?`,
+    a: `${openingText()}. Closed on Sunday. You can also send a quote request any time by WhatsApp, Telegram or the form on our website.`,
   },
   {
     q: `What does ${SITE.shortName} make?`,
@@ -115,7 +141,7 @@ export function serviceFaqs(s: Service): Faq[] {
   return [
     {
       q: `Where can I get ${name} in Addis Ababa?`,
-      a: `At ${SITE.name}, ${fullAddress()}. We make: ${items}. ${s.summary}`,
+      a: `At ${SITE.name}, ${addressWithLandmark()}, open ${openingText()}. We make: ${items}. ${s.summary}`,
     },
     {
       q: `What is the price of ${name}?`,

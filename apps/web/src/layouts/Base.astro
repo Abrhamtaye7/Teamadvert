@@ -4,6 +4,7 @@ import logo from "../assets/teamlogo.png";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import Motion from "../components/Motion.astro";
+import { CATALOG } from "../content/catalog";
 import { BUSINESS_KEYWORDS, BUSINESS_KEYWORDS_AMHARIC, SERVICE_KEYWORDS, serviceUrl } from "../content/seo";
 import { SITE } from "../content/site";
 import "../styles/global.css";
@@ -29,6 +30,7 @@ const businessId = `${SITE.url}/#business`;
 const knowsAbout = [
   ...SITE.services.flatMap((s) => [s.title, ...s.items.map((i) => i.title)]),
   ...Object.values(SERVICE_KEYWORDS).flatMap((k) => k.en),
+  ...CATALOG.flatMap((cat) => [cat.name, ...cat.products, ...cat.methods]),
 ];
 
 // LocalBusiness structured data for Google; placeholder (TODO) values are left out.
@@ -58,7 +60,12 @@ const jsonLd = {
   },
   // Same pin as the Contact page map, so Google can match the site to the Maps listing
   geo: { "@type": "GeoCoordinates", latitude: c.map.lat, longitude: c.map.lng },
-  ...(c.hours ? { openingHours: c.hours } : {}),
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: c.openingHours.days,
+    opens: c.openingHours.opens,
+    closes: c.openingHours.closes,
+  },
   sameAs: Object.values(SITE.social).filter(Boolean),
   areaServed: [
     { "@type": "City", name: "Addis Ababa" },
@@ -86,6 +93,9 @@ const website = {
 };
 
 const metaKeywords = [...new Set([...keywords, ...BUSINESS_KEYWORDS])].join(", ");
+
+// Google Tag Manager on public pages only: not on noindex pages (the QR check URL holds a proforma's secret token)
+const gtmId = noindex ? "" : SITE.analytics.gtmId;
 ---
 
 <!doctype html>
@@ -93,6 +103,21 @@ const metaKeywords = [...new Set([...keywords, ...BUSINESS_KEYWORDS])].join(", "
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    {
+      gtmId && (
+        <>
+          <!-- Google Tag Manager -->
+          <script is:inline define:vars={{ gtmId }}>
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer',gtmId);
+          </script>
+          <!-- End Google Tag Manager -->
+        </>
+      )
+    }
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="keywords" content={metaKeywords} />
@@ -126,6 +151,15 @@ const metaKeywords = [...new Set([...keywords, ...BUSINESS_KEYWORDS])].join(", "
     <script is:inline>document.documentElement.classList.add("js");</script>
   </head>
   <body class="flex min-h-dvh flex-col">
+    {
+      gtmId && (
+        <>
+          <!-- Google Tag Manager (noscript) -->
+          <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`} height="0" width="0" style="display:none;visibility:hidden" /></noscript>
+          <!-- End Google Tag Manager (noscript) -->
+        </>
+      )
+    }
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
     <Header />
     <main id="main" class="flex-1">

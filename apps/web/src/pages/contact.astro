@@ -43,6 +43,7 @@ const icon = "flex size-12 shrink-0 items-center justify-center rounded-full";
           <span>
             <span class="block text-sm text-slate-500">Visit us</span>
             <span class="font-semibold text-brand-950">{fullAddress()}</span>
+            <span class="block text-sm text-slate-500">{c.landmark[0].toUpperCase() + c.landmark.slice(1)}</span>
             <span class="block text-sm text-slate-600" lang="am">{c.cityLocal}</span>
             <a href="#map" class="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">See the map ↓</a>
           </span>
@@ -70,7 +71,7 @@ const icon = "flex size-12 shrink-0 items-center justify-center rounded-full";
       <div class="reveal flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 id="map-title" class="text-2xl font-extrabold tracking-tight text-brand-950">Find <span class="text-brand-600">our office</span></h2>
-          <p class="mt-1 text-slate-600">{fullAddress()} · <span lang="am">{c.cityLocal}</span></p>
+          <p class="mt-1 text-slate-600">{fullAddress()}, {c.landmark} · <span lang="am">{c.cityLocal}</span></p>
         </div>
         <a href={c.mapUrl} rel="noopener" target="_blank" class="inline-flex min-h-11 items-center gap-2 self-start rounded-full bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 sm:self-auto">
           <MapPin class="size-4" aria-hidden="true" /> Get directions

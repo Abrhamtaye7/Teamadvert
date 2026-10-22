@@ -20,15 +20,25 @@ export const SITE = {
     whatsapp: "251938056657",
     telegram: "Teamadvert",
     email: "info@teamadvertplc.com",
+    /** Keep exactly as on Google Business Profile and directories (same name, address and phone everywhere) */
     address: "Gabon St, Kirkos Sub-city",
+    /** Helps people (and maps) find the door; shown next to the address, not part of it */
+    landmark: "behind Bole Mega",
     city: "Addis Ababa",
     cityLocal: "አዲስ አበባ",
     country: "Ethiopia",
-    /** Leave "" to hide until exact hours are known, e.g. "Mon–Fri 8:30–17:30, Sat 8:30–12:30" */
-    hours: "",
+    /** Shown on the site; leave "" to hide */
+    hours: "Mon–Sat 8:00–22:00 · closed Sunday",
+    /** The same hours for Google (schema.org openingHoursSpecification) */
+    openingHours: { days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], opens: "08:00", closes: "22:00" },
     mapUrl: "https://maps.app.goo.gl/eryWAAkWJxADAhma8",
     /** The "Team advert" pin that mapUrl opens; used for the map on the Contact page */
     map: { lat: 8.9978799, lng: 38.7691876, zoom: 17 },
+  },
+
+  /** Google Tag Manager container for the public site (leave "" to turn tracking off). Never loaded in /office. */
+  analytics: {
+    gtmId: "GTM-5K2VDLQM",
   },
 
   social: {

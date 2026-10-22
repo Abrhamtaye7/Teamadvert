@@ -1,0 +1,91 @@
+---
+// Everything Team Advert prints and makes, with production methods, as tables (src/content/catalog.ts).
+import Base from "../layouts/Base.astro";
+import CatalogTable from "../components/CatalogTable.astro";
+import CtaBand from "../components/CtaBand.astro";
+import PageHero from "../components/PageHero.astro";
+import { CATALOG } from "../content/catalog";
+import { businessCapsule, serviceUrl } from "../content/seo";
+import { SITE } from "../content/site";
+
+const url = `${SITE.url}/products/`;
+const byService = new Map(SITE.services.map((s) => [s.slug, s]));
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "OfferCatalog",
+    "@id": `${url}#catalog`,
+    name: `${SITE.name} products`,
+    url,
+    provider: { "@id": `${SITE.url}/#business` },
+    itemListElement: CATALOG.map((cat) => ({
+      "@type": "OfferCatalog",
+      name: cat.name,
+      itemListElement: cat.products.map((p) => ({ "@type": "Offer", itemOffered: { "@type": "Product", name: p } })),
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE.url}/` },
+      { "@type": "ListItem", position: 2, name: "Products", item: url },
+    ],
+  },
+];
+---
+
+<Base
+  title="Printing, signage & branding products in Addis Ababa"
+  description={`Everything ${SITE.name} makes in Addis Ababa: stationery, marketing print, banners, vehicle branding, 3D signs, promotional items, packaging, books and exhibition stands.`}
+  keywords={CATALOG.map((c) => `${c.name} Addis Ababa`)}
+  schema={schema}
+>
+  <PageHero eyebrow="Products" title="Everything we" highlight="print and make" intro={businessCapsule()}>
+    <nav class="fade-up -mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" style="--delay:.3s" aria-label="Jump to a category">
+      {
+        CATALOG.map((c) => (
+          <a href={`#${c.slug}`} class="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-white px-4 text-sm font-medium text-slate-700 ring-1 ring-slate-200 transition hover:text-brand-700 hover:ring-brand-300">
+            {c.name}
+          </a>
+        ))
+      }
+    </nav>
+  </PageHero>
+
+  <section class="py-14 md:py-20" aria-labelledby="catalog-title">
+    <div class="container-site">
+      <h2 id="catalog-title" class="reveal text-2xl font-extrabold tracking-tight text-brand-950 sm:text-3xl">
+        Products and <span class="text-brand-600">production methods</span>
+      </h2>
+      <p class="reveal mt-2 max-w-2xl text-slate-600">
+        {CATALOG.length} product categories, made in-house. Send us the item, size, quantity and deadline for an itemised proforma with VAT.
+      </p>
+      <div class="mt-8">
+        <CatalogTable categories={CATALOG} caption={`${SITE.name} products and production methods`} />
+      </div>
+
+      <h2 class="reveal mt-14 text-xl font-extrabold tracking-tight text-brand-950">Details by service</h2>
+      <ul class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          CATALOG.map((c) => (
+            <li class="reveal rounded-2xl bg-slate-50 p-4">
+              <p class="font-semibold text-brand-950">{c.name}</p>
+              <p class="mt-1 text-sm text-slate-600">
+                {c.services.map((slug, i) => (
+                  <>
+                    {i > 0 && ", "}
+                    <a href={serviceUrl(slug)} class="text-brand-700 hover:underline">{byService.get(slug)?.title}</a>
+                  </>
+                ))}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Need something from this list?" text="Send us the item, size, quantity and deadline and we'll reply with a proforma." />
+</Base>
